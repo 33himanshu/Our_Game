@@ -258,14 +258,14 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 </div>
 <div id="rot"><div>↻</div>Turn your phone sideways to play</div>
 
-<script src="models/xbot.js?v=1795695881"></script>
+<script src="models/xbot.js?v=1795696533"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <div id="speed" style="position:fixed;inset:0;pointer-events:none;opacity:0;z-index:6;background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0) 0deg 5deg, rgba(255,255,255,.55) 5deg 6deg);-webkit-mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%);mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%)"></div>
-<script src="mocap.js?v=1795695881"></script>
-<script src="anim.js?v=1795695881"></script>
-<script src="faces.js?v=1795695881"></script>
-<script src="faces_real.js?v=1795695881"></script>
-<script src="models/bodies.js?v=1795695881"></script>
+<script src="mocap.js?v=1795696533"></script>
+<script src="anim.js?v=1795696533"></script>
+<script src="faces.js?v=1795696533"></script>
+<script src="faces_real.js?v=1795696533"></script>
+<script src="models/bodies.js?v=1795696533"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -1386,11 +1386,11 @@ function finisher(att, def) {                       // the blow that ends the ma
 }
 // ---- ultimates: one per fighter, once a match, on a full bar. "Eightfold Cosine" is Aman's own idea and design (his branch); it is tightened here, and the other two are built in its shape.
 const ULT = { himanshu: { name: 'BHAIYA STAMPEDE', col: '#6fb0ff' }, aman: { name: 'EIGHTFOLD COSINE', col: '#7dffb0' }, charan: { name: 'GALTI CASCADE', col: '#ffcf4a' } };
-function ghost(f, col, op) {                            // a frozen, see-through copy of a fighter
-  const g = SkeletonUtils.clone(f.root), m = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false });
-  g.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = false; o.material = m; o.frustumCulled = false; } else if (o.isLight || o.isSprite) o.visible = false; }); g.userData.mat = m; return g;
+function ghost(f) {                                     // a real, solid copy of a fighter, frozen in the pose he holds at that moment
+  const g = SkeletonUtils.clone(f.root);
+  g.traverse(o => { if (o.isMesh) { o.castShadow = false; o.frustumCulled = false; if (o.geometry && o.geometry.type === 'RingGeometry') o.visible = false; } else if (o.isLight || o.isSprite) o.visible = false; }); return g;
 }
-function ghostFree(g) { scene.remove(g); const sk = new Set(); g.traverse(o => { if (o.isSkinnedMesh) sk.add(o.skeleton); }); sk.forEach(k => k.dispose()); g.userData.mat.dispose(); }
+function ghostFree(g) { scene.remove(g); const sk = new Set(); g.traverse(o => { if (o.isSkinnedMesh) sk.add(o.skeleton); }); sk.forEach(k => k.dispose()); }
 function amanShatter(x, y, dir) {                       // Aman's: the one knocked out breaks into glowing pieces
   if (netGate(['ash', x, y, dir])) return; flash(0.3);
   for (let i = 0; i < (PHONE ? 16 : 36); i++) { const sh = new THREE.Mesh(sharedGeo('shard', () => new THREE.TetrahedronGeometry(1)), new THREE.MeshBasicMaterial({ color: i % 3 ? ULT.aman.col : '#ffffff', transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); sh.scale.setScalar(0.055 + Math.random() * 0.12); sh.rotation.set(Math.random() * 3, Math.random() * 3, 0);
@@ -1404,8 +1404,9 @@ function startUlt(f, o) {
   { const c = $('cut'); c.classList.add('hidden'); void c.offsetWidth; c.style.setProperty('--cc', U.col); $('cutImg').src = window.FACE_PORTRAIT[f.key]; $('cutName').textContent = U.name; $('cutSub').textContent = 'ULTIMATE'; c.classList.remove('hidden'); setTimeout(() => c.classList.add('hidden'), 1100); }
   { const dk = $('dark'); dk.style.transition = 'opacity .25s'; dk.style.background = '#000'; dk.style.opacity = 0.5; } G.fin = { x: o.x, t: 99 }; sfx('domain'); say(f, f.c.lines.super);
 }
+function ultVisFree(u) { u.ghosts.forEach(ghostFree); u.ghosts = []; const vz = u.vis; if (!vz || vz.freed) return; vz.freed = 1; vz.cl.forEach(c => { if (!c) return; scene.remove(c.orb, c.beam); c.orb.material.dispose(); }); scene.remove(vz.ring, vz.core); vz.ring.material.dispose(); vz.core.material.dispose(); vz.bm.dispose(); }
 function ultEnd(G) {
-  const u = G.ult; if (!u) return; G.ult = null; u.ghosts.forEach(ghostFree); if (!G.dom) $('dark').style.opacity = 0; if (G.fin) G.fin.t = 0;
+  const u = G.ult; if (!u) return; G.ult = null; ultVisFree(u); if (!G.dom) $('dark').style.opacity = 0; if (G.fin) G.fin.t = 0;
   if (!(net && net.role === 'guest')) { if (u.f.state === 'domain') { u.f.state = 'idle'; u.f.t = 0; } if (u.o.state === 'domheld') { u.o.state = 'idle'; u.o.t = 0; u.o.y = 0; } }
 }
 function ultStep(G) {
@@ -1416,17 +1417,24 @@ function ultStep(G) {
   const finish = (word, fg, st) => { fxPillar(o.x, 0, '#ffffff', 0.4, 9, 0.3, 0.7, 1.8); [['#ffffff', 0.5, 0.35, 13], [col, 0.6, 0.5, 9]].forEach(([c, r, l, g]) => fxRing(o.x, 0.04, 0, c, r, l, g, 'y')); speedLines(); flash(0.28); impactFrame(60); G.shake = 0.6; G.zoomK = 1; sfx('thud'); sfx('bell');
     { const s2 = textSprite(word, { size: 70, bg: null, fg, stroke: st }, 0.5); s2.renderOrder = 40; s2.material.depthTest = false; PFX(s2, V(o.x, 2.3, 0.9), V(0, 0.2, 0), 0.9, {}); }
     if (host) { o.state = 'idle'; o.t = 0; hit(f, o, 20, 5, { super: true, launch: true }); if (u.key === 'aman' && o.state === 'ko') amanShatter(o.x, o.y, dir); } u.done = t + 0.7; };
-  if (u.key === 'aman') {                               // eight of him close a ring round the target; each fires in turn; then all at once
-    const N = PHONE ? 4 : 8, T1 = 0.5, T2 = T1 + N * 0.14 + 0.35;
-    if (at('ring', 0.35)) fxRing(o.x, 0.04, -0.1, col, 2.05, 2.9, 0, 'y');
-    for (let i = 0; i < N; i++) { const a = i / N * 6.283 + 0.4, px = o.x + Math.cos(a) * 2.0, pz = -0.1 + Math.sin(a) * 0.85;
-      if (at('g' + i, T1 + i * 0.14)) { const g = ghost(f, col, 0.5); g.position.set(px, 0, pz); g.rotation.y = Math.atan2(o.x - px, -0.1 - pz); scene.add(g); u.ghosts.push(g); fxRing(px, 0.04, pz, col, 0.3, 0.3, 5, 'y'); PFX(glowSprite(col, 0.5), V(px, 1.45, pz), V(0, 0, 0), 3, {}); sfx('whoosh'); }
-      if (at('b' + i, T2 + i * 0.1)) { const A = V(px, 1.45, pz), B = V(o.x, 1.2, 0), d = B.clone().sub(A), bm = new THREE.Mesh(sharedGeo('pillar', () => new THREE.CylinderGeometry(1, 1, 1, PHONE ? 12 : 20, 1, true)), new THREE.MeshBasicMaterial({ color: i % 2 ? '#ffffff' : col, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })); bm.scale.set(0.045, d.length(), 0.045); bm.quaternion.setFromUnitVectors(YAX, d.clone().normalize()); PFX(bm, A.clone().add(B).multiplyScalar(0.5), V(0, 0, 0), 0.22, {}); tick(2, 1.2); } }
-    if (at('fin', T2 + N * 0.1 + 0.3)) { u.ghosts.forEach(g => fxRing(g.position.x, 1.2, g.position.z, '#ffffff', 0.25, 0.25, 9, 'x')); u.ghosts.forEach(ghostFree); u.ghosts = []; finish('cos θ = 1.00', '#eafff2', '#03130a'); }
+  if (u.key === 'aman') {                               // Aman's design: eight of him fly in and close a ring; each charges an orb; then all eight fire together and hold the beams on the target
+    const N = PHONE ? 4 : 8, TA = 0.35, TC = TA + N * 0.15 + 1.0, TF = TC + 0.9, TI = TF + 1.0, charge = clamp((t - TC) / (TF - TC), 0, 1), firing = t >= TF && t < TI, tgt = V(o.x, 1.2, 0);
+    if (!u.vis) { const ring = new THREE.Mesh(sharedGeo('ring', () => new THREE.RingGeometry(0.8, 1, PHONE ? 28 : 48)), new THREE.MeshBasicMaterial({ color: col, side: THREE.DoubleSide, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false })); ring.rotation.x = -Math.PI / 2; ring.scale.setScalar(2.05); ring.position.set(o.x, 0.035, 0); ring.renderOrder = 3;
+      const core = glowSprite('#ffffff', 1); core.visible = false; scene.add(ring, core); u.vis = { ring, core, bm: new THREE.MeshBasicMaterial({ color: '#b7ffdd', transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }), cl: [] }; }
+    const vz = u.vis; vz.ring.material.opacity = 0.35 + charge * 0.5; vz.ring.rotation.z = t * 0.8; vz.core.visible = firing; vz.core.position.copy(tgt).setZ(0.3); vz.core.scale.setScalar(0.7 + 0.3 * Math.sin(t * 34) ** 2); vz.bm.opacity = 0.5 + 0.25 * Math.sin(t * 42) ** 2;
+    for (let i = 0; i < N; i++) { const a = (i + 0.5) * 6.283 / N, arr = smooth(clamp((t - TA - 0.15 * i) / 1.0, 0, 1)), dx = Math.cos(a), dz = Math.sin(a) * 0.55; if (arr <= 0 || t >= TI) continue;
+      if (!vz.cl[i]) { const body = ghost(f), orb = glowSprite(col, 1), beam = new THREE.Mesh(sharedGeo('pillar', () => new THREE.CylinderGeometry(1, 1, 1, PHONE ? 12 : 20, 1, true)), vz.bm); beam.visible = false; beam.renderOrder = 13; scene.add(body, orb, beam); u.ghosts.push(body); vz.cl[i] = { body, orb, beam }; sfx('whoosh'); fxRing(o.x + dx * 2.0, 0.04, dz * 2.0, col, 0.3, 0.3, 5, 'y'); }
+      const c = vz.cl[i], r = lerp(3.05, 2.0, arr); c.body.position.set(o.x + dx * r, 0.42 * (1 - arr) + 0.07 * charge * Math.sin(t * 5 + i), dz * r); c.body.rotation.y = Math.atan2(-dx, -dz); c.body.rotation.x = firing ? -0.12 : 0; c.body.scale.setScalar(lerp(0.25, 0.9, arr));
+      c.orb.position.set(c.body.position.x - dx * 0.55, c.body.position.y + 1.28, c.body.position.z - dz * 0.55 + 0.05); c.orb.scale.setScalar(arr * (0.22 + charge * 0.36 + 0.06 * Math.sin(t * 8 + i)) * (firing ? 0.75 : 1));
+      c.beam.visible = firing; if (firing) { const d = tgt.clone().sub(c.orb.position); c.beam.position.copy(c.orb.position).lerp(tgt, 0.5); c.beam.scale.set(0.05, d.length(), 0.05); c.beam.quaternion.setFromUnitVectors(YAX, d.normalize()); } }
+    if (t > TC && t < TF && (f.anim % 3) === 0) { const a = Math.random() * 6.28; fxStreak(o.x + Math.cos(a) * 2.2, 1.2 + Math.sin(a) * 1.2, 0.3, col, a, 0.5, 0.03, -Math.cos(a) * 5, -Math.sin(a) * 3, 0.3); }      // the air is pulled in while they charge
+    if (at('fire', TF)) { sfx('super'); G.shake = 0.35; flash(0.15); fxRing(o.x, 1.2, 0.3, '#ffffff', 0.3, 0.3, 9, 'x'); hitLight.position.set(o.x, 1.2, 1.2); hitLight.color.set(col); }
+    if (firing) { hitLight.intensity = 26; G.shake = Math.max(G.shake, 0.14); for (let k = 0; k < 8; k++) if (at('tk' + k, TF + 0.06 + k * 0.115)) tick(2, 0.9 + Math.random() * 0.7); }
+    if (at('fin', TI)) { ultVisFree(u); finish('cos θ = 1.00', '#eafff2', '#03130a'); }
   } else if (u.key === 'himanshu') {                    // he goes through them six times from both sides faster than the eye, then sends them up
     const P = 6, T1 = 0.6;
     for (let i = 0; i < P; i++) if (at('p' + i, T1 + i * 0.27)) { const sd = (i % 2 ? -1 : 1) * dir, from = o.x - sd * 2.1, to = clamp(o.x + sd * 2.1, -ARENA_X, ARENA_X), y = 0.8 + Math.random() * 0.9;
-      const g = ghost(f, col, 0.45); g.position.set(clamp(from, -ARENA_X, ARENA_X), 0, 0); scene.add(g); u.ghosts.push(g); if (u.ghosts.length > (PHONE ? 2 : 4)) ghostFree(u.ghosts.shift());
+      const g = ghost(f); g.position.set(clamp(from, -ARENA_X, ARENA_X), 0, -0.25); scene.add(g); u.ghosts.push(g); if (u.ghosts.length > (PHONE ? 3 : 6)) ghostFree(u.ghosts.shift());
       if (host) { f.x = to; f.facing = -sd; } fxStreak(o.x, y, 0.4, '#ffffff', sd > 0 ? 0 : Math.PI, 5.2, 0.1, 0, 0, 0.16); fxStreak(o.x, y + 0.08, 0.4, col, sd > 0 ? 0 : Math.PI, 5.2, 0.2, 0, 0, 0.22); skid(f); sfx('whoosh'); tick(2, y); }
     if (at('fin', T1 + P * 0.27 + 0.3)) { if (host) { f.x = clamp(o.x - dir * 0.85, -ARENA_X, ARENA_X); f.facing = dir; } u.ghosts.forEach(ghostFree); u.ghosts = []; finish('SHIPPED.', '#ffffff', '#0b2a6a'); }
   } else {                                              // everything that can go wrong falls on them, one thing after another; then he slips into them
