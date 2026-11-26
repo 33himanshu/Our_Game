@@ -729,6 +729,7 @@ function animFor(f) {
   if (s === 'hit') return { base: { c: f.hp % 2 ? C.hith : C.hitc, u: t } };
   if (s === 'down') return t < 0.5 ? { base: { c: C.kd, u: t / 0.5 * aLen(C.kd) }, fast: 1 } : t < 0.8 ? { base: { c: C.kd, u: 9 } } : { base: { c: C.getup, u: (t - 0.8) / 0.8 * aLen(C.getup) }, fast: 1 };
   if (s === 'ko') return { base: { c: C.kd, u: Math.min(1, t / 0.6) * aLen(C.kd) }, fast: 1 };
+  if (s === 'cameo') return t < 0.4 ? { base: { c: C.castin, u: t / 0.4 * aLen(C.castin) } } : { base: { c: C.cast, u: t - 0.4 } };
   if (s === 'win') {
     if (f.key === 'charan') return { base: { c: C.dance, u: t } };
     if (f.key === 'aman') return { base: { c: C.fold, u: t } };
@@ -958,7 +959,7 @@ let AC = null, musicOn = true, amb = null;
 function audio() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } return AC; }
 function noise(a, len) { const b = a.createBuffer(1, Math.floor(a.sampleRate * len), a.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2.5); const n = a.createBufferSource(); n.buffer = b; return n; }
 function sfx(kind, amt = 6) {
-  if (netGate(['sx', kind, amt])) return;
+  if (kind !== 'crowd' && netGate(['sx', kind, amt])) return;
   if (muted) return; const a = audio(); if (!a) return; const t = a.currentTime;
   const out = a.createGain(); out.connect(a.destination);
   if (kind === 'hit' || kind === 'block') {
@@ -975,6 +976,22 @@ function sfx(kind, amt = 6) {
   } else if (kind === 'domain') {
     const o = a.createOscillator(), g = a.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(48, t); o.frequency.exponentialRampToValueAtTime(130, t + 1.3); g.gain.setValueAtTime(0.001, t); g.gain.exponentialRampToValueAtTime(0.7, t + 0.9); g.gain.exponentialRampToValueAtTime(0.001, t + 1.6); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + 1.7);
     const n = noise(a, 1.4), f = a.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 0.8; f.frequency.setValueAtTime(200, t); f.frequency.exponentialRampToValueAtTime(3200, t + 1.2); out.gain.setValueAtTime(0.001, t); out.gain.exponentialRampToValueAtTime(0.25, t + 1.0); out.gain.exponentialRampToValueAtTime(0.001, t + 1.5); n.connect(f); f.connect(out); n.start(t);
+  } else if (kind === 'crowd') {
+    const n = noise(a, 1.4), f = a.createBiquadFilter();
+    f.type = 'bandpass'; f.frequency.value = 1100; f.Q.value = 0.65;
+    out.gain.setValueAtTime(0.01, t);
+    out.gain.linearRampToValueAtTime(0.5, t + 0.18);
+    out.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
+    n.connect(f); f.connect(out); n.start(t);
+    [0, 0.11, 0.25].forEach(delay => {
+      const whistle = a.createOscillator(), gain = a.createGain(), start = t + delay;
+      whistle.frequency.setValueAtTime(1250 + delay * 1200, start);
+      whistle.frequency.exponentialRampToValueAtTime(2100, start + 0.24);
+      gain.gain.setValueAtTime(0.035, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.3);
+      whistle.connect(gain); gain.connect(out);
+      whistle.start(start); whistle.stop(start + 0.3);
+    });
   } else if (kind === 'thud') {
     const o = a.createOscillator(), g = a.createGain(); o.frequency.setValueAtTime(90, t); o.frequency.exponentialRampToValueAtTime(35, t + 0.3); g.gain.setValueAtTime(0.7, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + 0.4);
   }
@@ -991,7 +1008,7 @@ function resetFighter(f, x, facing) {
   f.tilt.rotation.set(0, 0, 0); f.tilt.position.set(0, 0, 0);
 }
 function startFight() {
-  if (game) { game.p1.dispose(); game.p2.dispose(); clearFX(); }
+  if (game) { game.p1.dispose(); game.p2.dispose(); clearCameo(game); clearFX(); }
   game = { p1: new Fighter(sel.p1, -1.8, 1, false), p2: new Fighter(sel.p2, 1.8, -1, true), phase: 'intro', t: 0, time: 90, clock: 0, shake: 0, fx: [], banner: null, round: 1, wins: [0, 0], roundLabel: 'ROUND 1' };
   game.p1.tag = net ? (net.role === 'host' ? 'YOU' : 'FRIEND') : 'YOU'; game.p2.tag = net ? (net.role === 'host' ? 'FRIEND' : 'YOU') : 'CPU';
   ['menu', 'end'].forEach(id => $(id).classList.add('hidden'));
@@ -1002,15 +1019,71 @@ function startFight() {
   const g0 = game; setTimeout(() => { if (game === g0) say(g0.p2, g0.p2.c.lines.start); }, 1700);
 }
 function newRound() {
-  const G = game; G.round++; G.roundLabel = (G.wins[0] === 1 && G.wins[1] === 1) ? 'FINAL ROUND' : 'ROUND ' + G.round;
+  const G = game; clearCameo(G); G.round++; G.roundLabel = (G.wins[0] === 1 && G.wins[1] === 1) ? 'FINAL ROUND' : 'ROUND ' + G.round;
   resetFighter(G.p1, -1.8, 1); resetFighter(G.p2, 1.8, -1); clearFX();
   Object.assign(G, { phase: 'intro', t: 0, time: 90, clock: 0, fightShown: false, winner: null, dropT: undefined });
 }
 function toMenu() {
-  if (game) { game.p1.dispose(); game.p2.dispose(); clearFX(); }
+  if (game) { game.p1.dispose(); game.p2.dispose(); clearCameo(game); clearFX(); }
   game = null; setMusic(false); if (window.speechSynthesis) speechSynthesis.cancel();
   ['end', 'hud', 'topbtns'].forEach(id => $(id).classList.add('hidden')); $('menu').classList.remove('hidden');
   $('center').textContent = ''; centerTimer = 0; document.querySelectorAll('.bubble').forEach(b => b.remove());
+}
+
+const CAMEO_LINES = {
+  himanshu: L('Bhaiya, bhaiya! Loser!', 'भैया, भैया! लूज़र!'),
+  aman: L('Loser detected. Cosine says so!', 'लूज़र डिटेक्टेड। कोसाइन कहता है!'),
+  charan: L('Galti ho gayi, loser!', 'गलती हो गई, लूज़र!')
+};
+const CAMEO_START = 1.5, CAMEO_DURATION = 12, ROUND_END = CAMEO_START + CAMEO_DURATION;
+
+function clearCameo(G) {
+  if (!G.cameo) return;
+  G.cameo.dispose();
+  G.cameo = null;
+  $('bub2')?.remove();
+}
+
+function renderCameo(G) {
+  const elapsed = G.t - CAMEO_START;
+  if (G.phase !== 'ko' || !G.winner || elapsed < 0 || elapsed >= CAMEO_DURATION) {
+    clearCameo(G);
+    return;
+  }
+  const leader = G.winner;
+  const trailing = leader === G.p1 ? G.p2 : G.p1;
+  const facing = Math.sign(trailing.x - leader.x) || leader.facing;
+  if (!G.cameo) {
+    const key = KEYS.find(k => k !== leader.key && k !== trailing.key);
+    G.cameo = new Fighter(key, leader.x, facing, false);
+  }
+  const f = G.cameo;
+  const enter = 0.8, exit = CAMEO_DURATION - enter;
+  const progress = smooth(clamp(Math.min(elapsed, CAMEO_DURATION - elapsed) / enter, 0, 1));
+  f.root.visible = true;
+  const spot = clamp(leader.x - facing * 0.65, -ARENA_X, ARENA_X);
+  f.x = lerp(spot - facing * 1.5, spot, progress);
+  f.facing = facing;
+  f.vx = elapsed < enter ? facing : -facing;
+  const facesCrowd = elapsed >= 4 && elapsed < 8;
+  f.state = elapsed < enter || elapsed >= exit ? 'walk' : facesCrowd ? 'win' : 'cameo';
+  f.t = Math.max(0, elapsed - (elapsed >= 8 ? 8 : facesCrowd ? 4 : enter));
+  f.anim = Math.floor(elapsed / DT);
+  if (!f.taunted && elapsed >= enter && elapsed < exit) {
+    f.taunted = true;
+    f.bubble = CAMEO_LINES[f.key].r;
+    speak(f.c, CAMEO_LINES[f.key]);
+    sfx('crowd');
+  }
+  if (facesCrowd && !f.cheered) {
+    f.cheered = true;
+    f.bubble = 'Let’s hear it!';
+    speak(f.c, L(f.bubble, 'तालियाँ हो जाएँ!'));
+    sfx('crowd');
+  }
+  f.bubbleT = f.taunted && elapsed < 7 ? 7 - elapsed : 0;
+  syncFighter(f, facesCrowd ? 0 : undefined);
+  f.root.position.z = lerp(-2.7, -0.8, progress);
 }
 
 function physics(f) {
@@ -1138,7 +1211,6 @@ function ko(def, att) {
   game.phase = 'ko'; game.t = 0; game.winner = att; game.shake = 0.45; showCenter('K.O.!', '#ff5a5f'); sfx('bell');
   const g0 = game;
   setTimeout(() => { if (game === g0) say(att, att.c.lines.win); }, 900);
-  if (game.matchOver) setTimeout(() => { if (game === g0) say(def, def.c.lines.lose); }, 3600);
 }
 function startSuper(f) {
   f.meter = 0; f.state = 'super'; f.t = 0; f.vx = 0; f.fired = {}; sfx('super');
@@ -1339,8 +1411,9 @@ function step() {
     [p1, p2].forEach(f => { if (f.hp <= LOWHP && f.hp > 0 && !f.rageOn) { f.rageOn = true; floatText(f, 'RAGE!', '#ff5a5f', 30); } else if (f.hp > LOWHP) f.rageOn = false; });
     if (G.clock >= 1) { G.clock -= 1; if (--G.time <= 0 && G.phase === 'fight') { G.time = 0; const hA = p1.key === 'himanshu', hB = p2.key === 'himanshu'; const [w, l] = (hA && !hB) ? [p1, p2] : (hB && !hA) ? [p2, p1] : p1.hp >= p2.hp ? [p1, p2] : [p2, p1]; ko(l, w); } }
   } else if (G.phase === 'ko') {
-    update(p1, p2, {}); update(p2, p1, {});
-    if (G.t > 2.6 && !G.endShown) { if (G.matchOver) { G.endShown = true; showEnd(); } else newRound(); }
+    if (G.t < CAMEO_START) { update(p1, p2, {}); update(p2, p1, {}); }
+    else { p1.bubbleT = 0; p2.bubbleT = 0; }
+    if (G.t >= ROUND_END && !G.endShown) { if (G.matchOver) { G.endShown = true; showEnd(); } else newRound(); }
   }
   const dx = p2.x - p1.x;
   if (Math.abs(dx) < 0.62 && Math.abs(p1.y - p2.y) < 1.2 && !['ko', 'down'].includes(p1.state) && !['ko', 'down'].includes(p2.state)) {
@@ -1349,10 +1422,10 @@ function step() {
   }
   stepFX(); pressed.clear();
 }
-function syncFighter(f) {
+function syncFighter(f, yaw) {
   f.root.position.set(f.x, f.y, 0);
   const turn = f.real ? 0.92 : 0.42;   // real bodies stand three-quarters to the camera, like the reference games
-  const targetRot = f.facing > 0 ? Math.PI / 2 - turn : -Math.PI / 2 + turn;
+  const targetRot = yaw ?? (f.facing > 0 ? Math.PI / 2 - turn : -Math.PI / 2 + turn);
   f.root.rotation.y = lerp(f.root.rotation.y, targetRot, 0.35);
   // falling over on a KO
   let fall = f.state === 'ko' ? Math.min(1, f.t / 0.45) : 0;
@@ -1693,7 +1766,8 @@ function updateHUD() {
   });
   $('timer').textContent = G.time;
   // speech bubbles above the heads
-  [G.p1, G.p2].forEach((f, i) => {
+  [G.p1, G.p2, G.cameo].forEach((f, i) => {
+    if (!f) return;
     let b = document.getElementById('bub' + i);
     if (f.bubbleT > 0) {
       if (!b) { b = document.createElement('div'); b.id = 'bub' + i; b.className = 'bubble'; document.body.appendChild(b); }
@@ -1817,7 +1891,7 @@ function guestStep() {
   if (G.dom) domainStep(G);
   const s = net.last;
   if (s) {
-    if (s.g.round !== G.round) { clearFX(); [G.p1, G.p2].forEach(f => { f.tilt.rotation.set(0, 0, 0); f.tilt.position.set(0, 0, 0); }); }
+    if (s.g.round !== G.round) { clearCameo(G); clearFX(); [G.p1, G.p2].forEach(f => { f.tilt.rotation.set(0, 0, 0); f.tilt.position.set(0, 0, 0); }); }
     Object.assign(G, { phase: s.g.phase, t: s.g.t, time: s.g.time, round: s.g.round, wins: s.g.wins, roundLabel: s.g.roundLabel, matchOver: s.g.matchOver, shake: s.g.shake });
     G.winner = s.g.w === null ? null : [G.p1, G.p2][s.g.w];
     [G.p1, G.p2].forEach((f, i) => { const o = s.f[i], was = f.state; SNAP.forEach(k => f[k] = o[k]); f.move = o.moveName ? MOVES[o.moveName] : null; if (f.state === 'super' && was !== 'super') f.fired = {}; });
@@ -1830,8 +1904,9 @@ function guestStep() {
   }
   net.replay = false;
   [[G.p1, G.p2], [G.p2, G.p1]].forEach(([f, o]) => { if (f.state === 'super') { f.fired = f.fired || {}; superStep(f, o); } f.hpShow = lerp(f.hpShow, f.hp, 0.06); if (f.bubbleT > 0) f.bubbleT -= DT; });
+  if (G.phase === 'ko' && G.t >= CAMEO_START) { G.p1.bubbleT = 0; G.p2.bubbleT = 0; }
   stepFX();
-  if (G.matchOver && G.phase === 'ko' && G.t > 2.6 && !G.endShown) { G.endShown = true; showEnd(); }
+  if (G.matchOver && G.phase === 'ko' && G.t >= ROUND_END && !G.endShown) { G.endShown = true; showEnd(); }
 }
 function netStatus(t) { $('netStatus').textContent = t; $('netMsg').textContent = t; }
 function netOnData(m) {
@@ -1913,7 +1988,7 @@ function frame(now) {
     if (game) { if (net && net.role === 'guest') guestStep(); else { step(); if (net && game) sendSnap(); } }
     else { pressed.clear(); previews.forEach(f => { f.t += DT; f.anim = (f.anim || 0) + 1; }); }
   }
-  if (game) { syncFighter(game.p1); syncFighter(game.p2); updateHUD(); }
+  if (game) { syncFighter(game.p1); syncFighter(game.p2); renderCameo(game); updateHUD(); }
   else previews.forEach(f => { f.root.position.set(f.x, 0, 0); f.mixer.update(el); f.guardW = 1; applyPose(f); faceCamera(f); });
   if (centerTimer > 0 && centerTimer < 1e8 && (centerTimer -= el) <= 0) $('center').textContent = '';
   { const sup = game && (game.p1.state === 'super' || game.p2.state === 'super' || game.cine); window.__hemi.intensity = lerp(window.__hemi.intensity, sup ? 0.22 : 1.0, 0.15); window.__key.intensity = lerp(window.__key.intensity, sup ? 0.5 : 2.0, 0.15); }
