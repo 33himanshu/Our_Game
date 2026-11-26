@@ -72,3 +72,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). In short: make a branch, open a pull req
 - **Betting.** Play money called chai points, kept on your device. Bet on yourself, or switch on WATCH & BET and let the computer fight for your pick. Harder opponents pay more. Nothing here is real money.
 - **Speed readout.** Add `?fps` to the address, or tap the round clock three times.
 - Himanshu still heals and gets back up. He stays down only to a parry critical or inside the other fighter's domain.
+- **Longer matches.** A match is now first to three rounds. From round two, each round is played under its own rule (double super bar, heavy hands, low gravity, pickup rain, long sprint, regrade round), shown under the clock.
+- **Ultimates** for Himanshu and Charan are built like Aman's, with real copies of the fighter: a bench of Himanshus shouting from both sides, and a crowd of Charans running in and slipping.
