@@ -30,4 +30,4 @@ for k, c in C.items():
 conv.sheet({k: C[k] for k in ['stance', 'hook', 'block', 'kd', 'getup']}, 'sheet3.png')
 out = {k: {**{x: y for x, y in c.items() if x not in 'qhp'}, 'q': np.round(c['q'], 4).reshape(-1).tolist(), 'h': np.round(c['h'], 3).reshape(-1).tolist()} for k, c in C.items()}
 js = 'window.ANIM = ' + json.dumps({'bones': conv.OUT, 'clips': out}, separators=(',', ':')) + ';\n'
-open('/Users/mac/Documents/Desktop items/qc-showdown/v3/anim.js', 'w').write(js); print('anim.js %d KB' % (len(js) // 1024))
+open('../anim.js', 'w').write(js); print('anim.js %d KB' % (len(js) // 1024))

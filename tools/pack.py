@@ -1,5 +1,5 @@
 import base64, os, sys
-V='/Users/mac/Documents/Desktop items/qc-showdown/v3/models/'
+V='../models/'
 out='window.MODEL_B64 = window.MODEL_B64 || {}; window.MODEL_META = window.MODEL_META || {};\n'
 for k in ('charan','himanshu','aman'):
     full=os.path.exists(V+k+'_full.glb')
