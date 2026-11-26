@@ -29,7 +29,8 @@ Then put the server on a public address (for example `cloudflared tunnel --url h
 | Block | Walk away from the opponent | Same |
 | Punch / Kick | J / K | PUNCH / KICK |
 | Grab | I | GRAB |
-| Super (full meter) | L or Space | SUPER |
+| Super (full meter) | L, or Space for Himanshu and Charan | SUPER |
+| Eightfold Cosine (Aman, once per match) | Space | — |
 | Domain expansion (full meter, once per round) | O | DOMAIN |
 
 Combos: punch, punch, punch · punch, punch, kick · punch, kick, kick · kick, kick.
@@ -38,8 +39,9 @@ Combos: punch, punch, punch · punch, punch, kick · punch, kick, kick · kick, 
 
 - Best of three rounds against the computer, or against a friend with a room code.
 - Critical hits that launch the opponent, counter hits, a rage mode at low health, and pickups that drop into the ring.
+- Aman’s Eightfold Cosine summons eight clones for a 15.5-second attack. The blast launches the opponent and shatters them into glowing pieces on a knockout. CPU Aman can use it too.
 - A domain expansion for each fighter: Final QC Tribunal, Cosine Void and Galti Nagar.
-- Himanshu never loses. This is on purpose.
+- Each fighter has a victory dance. When Charan loses, he gets up about 7.5 seconds after the K.O., walks to a corner, and cries.
 
 ## Files
 
