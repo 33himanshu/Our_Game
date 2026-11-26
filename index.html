@@ -732,6 +732,18 @@ function animFor(f) {
   if (s === 'standUp') return { base: { c: C.getup, u: clamp(t / 0.55, 0, 1) * aLen(C.getup) }, fast: 1 };
   if (s === 'chaiSlip') return { base: { c: C.kd, u: smooth(clamp(t / 0.65, 0, 1)) * aLen(C.kd) }, fast: 1 };
   if (s === 'cameo') return t < 0.4 ? { base: { c: C.castin, u: t / 0.4 * aLen(C.castin) } } : { base: { c: C.cast, u: t - 0.4 } };
+  if (s === 'amanDance') {
+    if (t >= AMAN_DANCE_FINISH) return { base: { c: C.fold, u: Math.min(t - AMAN_DANCE_FINISH, 1.15) } };
+    const beat = Math.sin(t * Math.PI * 4);
+    const pump = smooth(clamp((t - 0.7) / 0.35, 0, 1)) * (1 - smooth(clamp((t - 3.1) / 0.35, 0, 1)));
+    return {
+      base: { c: C.dance, u: t },
+      fn: (i, q) => {
+        if (/^Left(Arm|ForeArm|Hand)$/.test(AB[i])) q.premultiply(_afq.setFromAxisAngle(ZAX, pump * (0.2 + beat * 0.22)));
+        if (/^Right(Arm|ForeArm|Hand)$/.test(AB[i])) q.premultiply(_afq.setFromAxisAngle(ZAX, -pump * (0.2 - beat * 0.22)));
+      }
+    };
+  }
   if (s === 'win') {
     if (f.key === 'charan') return { base: { c: C.dance, u: t } };
     if (f.key === 'aman') return { base: { c: C.fold, u: t } };
@@ -876,6 +888,14 @@ function applyPoseProc(f) {
   if (s === 'super') {
     twistBody(f, -0.15);
     if (k === 'himanshu') { arm(f, 'Right', [-0.32, 1.42, 0.2], [-0.07, 1.64, 0.3], 1); arm(f, 'Left', [0.32, 1.42, 0.2], [0.07, 1.62, 0.3], 1); lean(f, -0.12 + Math.sin(t * 30) * 0.03); }
+    else if (k === 'aman' && f.shipable) {
+      const fire = smooth(clamp((t - SHIPABLE_FIRE + 0.25) / 0.25, 0, 1));
+      const charge = Math.sin(t * 4) * 0.055;
+      for (const [side, sign] of [['Left', 1], ['Right', -1]]) {
+        arm(f, side, null, [sign * lerp(0.28 + charge, 0.12, fire), lerp(1.48 + charge, 1.38, fire), lerp(0.35, 1.05, fire)], 1);
+      }
+      lean(f, lerp(-0.15, 0.2, fire));
+    }
     else if (k === 'aman') { arm(f, 'Right', null, [-0.05, 1.5, 1.0], 1); arm(f, 'Left', null, [0.4, 2.0, -0.1], 1); }
     else { const fl = Math.sin(t * 22); arm(f, 'Right', null, [-0.55, 1.95 + fl * 0.2, 0.1], 1); arm(f, 'Left', null, [0.55, 1.95 - fl * 0.2, 0.1], 1); }
     return;
@@ -964,6 +984,7 @@ const NAMES = {
   charan: { jab: 'OOPS JAB', cross: 'OF-COURSE CROSS', upper: 'GALTI UPPERCUT', kick: 'OF COURSE KICK', kick2: 'DOUBLE GALTI', lowpunch: 'LOW OOPS', dashpunch: 'SORRY DASH', flykick: 'OOPS FLYING KICK', sweep: 'SLIP SWEEP', grab: 'OF COURSE THROW' },
 };
 const CHAIN = { P: { P: 'cross', K: 'kick' }, PP: { P: 'upper', K: 'kick2' }, PK: { K: 'kick2' }, K: { K: 'kick2' } };   // P,P,P · P,P,K · P,K,K · K,K
+const SHIPABLE_FIRE = 14.35, SHIPABLE_END = 15, SHIPABLE_SHATTER = 0.34;
 const SUPER_DUR = { himanshu: 0.95, aman: 1.25, charan: 1.1 };
 
 // ---------------- sound: made in the browser, no files
@@ -1016,7 +1037,7 @@ function setMusic(on) {   // a low crowd rumble in the arena (M)
 
 function say(f, line) { if (netGate(['sy', f === game.p1 ? 0 : 1, line])) return; f.bubble = line.r; f.bubbleT = 2.6; speak(f.c, line); }
 function resetFighter(f, x, facing) {
-  Object.assign(f, { x, y: 0, vx: 0, vy: 0, facing, hp: MAXHP, hpShow: MAXHP, state: 'idle', t: 0, chain: '', buf: null, stun: 0, flash: 0, move: null, hits: 0, air: 0, bounced: 0, critNext: false, rageOn: false, airRot: 0, domUsed: false, invT: 0 });
+  Object.assign(f, { x, y: 0, vx: 0, vy: 0, facing, hp: MAXHP, hpShow: MAXHP, state: 'idle', t: 0, chain: '', buf: null, stun: 0, flash: 0, move: null, hits: 0, air: 0, bounced: 0, critNext: false, rageOn: false, airRot: 0, domUsed: false, invT: 0, shipable: false, shipableKO: false, shipableUsed: false });
   f.tilt.rotation.set(0, 0, 0); f.tilt.position.set(0, 0, 0);
 }
 function startFight() {
@@ -1124,7 +1145,7 @@ function charanEnding(G) {
       state: time < 0.85 ? 'win' : 'chaiSlip', t: time < 0.85 ? G.t : slipTime, facing: f.facing,
       yaw: slipTime >= 0.65 ? 0 : undefined, tilt: -f.facing * slip * 1.05 };
   }
-  if (loser.key !== 'charan') return null;
+  if (loser.key !== 'charan' || loser.shipableKO) return null;
   const side = Math.sign(loser.x - G.winner.x) || -G.winner.facing;
   const corner = side * (ARENA_X - 0.3);
   const rise = smooth(clamp(time / 0.55, 0, 1));
@@ -1135,10 +1156,30 @@ function charanEnding(G) {
     tilt: 0, rise };
 }
 
+const AMAN_DANCE_START = 1.4, AMAN_DANCE_FINISH = 6.2;
+
+function amanVictoryDance(G) {
+  if (G.phase !== 'ko' || G.winner?.key !== 'aman' || G.t < AMAN_DANCE_START) return null;
+  const f = G.winner;
+  const t = G.t - AMAN_DANCE_START;
+  const travel = smooth(clamp(t / 1.2, 0, 1));
+  const settle = 1 - smooth(clamp((t - 4.8) / 1.4, 0, 1));
+  const sway = Math.sin(t * Math.PI) * 0.36 * travel * settle;
+  const spin = smooth(clamp((t - 3.05) / 1.1, 0, 1));
+  const spot = lerp(f.x, clamp(f.x, -ARENA_X + 0.55, ARENA_X - 0.55), travel);
+  return { f, t, x: spot + sway, yaw: -spin * Math.PI * 2 };
+}
+
 function renderRoundFighters(G) {
+  const dance = amanVictoryDance(G);
+  if (dance) {
+    const { f, t, x, yaw } = dance;
+    syncEndingPose(f, { state: 'amanDance', t, x, y: 0 }, yaw);
+  }
   const ending = charanEnding(G);
   if (!ending) {
     for (const f of [G.p1, G.p2]) {
+      if (f === dance?.f) continue;
       if (f === G.winner && f.key === 'charan' && G.phase === 'ko' && G.t >= CAMEO_START && G.t < ROUND_END) {
         syncEndingPose(f, { t: G.t });
       } else syncFighter(f);
@@ -1147,8 +1188,10 @@ function renderRoundFighters(G) {
   }
   const { f, time, won, state, t, x, facing, yaw, tilt, rise } = ending;
   const other = f === G.p1 ? G.p2 : G.p1;
-  if (won) syncFighter(other);
-  else syncEndingPose(other, { t: G.t });
+  if (other !== dance?.f) {
+    if (won) syncFighter(other);
+    else syncEndingPose(other, { t: G.t });
+  }
   const lineVisible = won && time >= 1.55;
   if (lineVisible) {
     if (!G.charanSpoke) { G.charanSpoke = true; speak(f.c, CHAI_LINE); }
@@ -1219,11 +1262,11 @@ function update(f, o, inp) {
     else attackCheck(f, o, mv);
     if (grounded && !mv.air) f.vx = (f.t > mv.a * 0.5 && f.t < mv.b) ? f.facing * (mv.push || 1.2) : f.vx * 0.7;
   } else if (f.state === 'super') {
-    f.vx = 0; superStep(f, o); if (f.state === 'super' && f.t >= SUPER_DUR[f.key]) { f.state = 'idle'; f.t = 0; }
+    f.vx = 0; superStep(f, o); if (f.state === 'super' && f.t >= (f.shipable ? SHIPABLE_END : SUPER_DUR[f.key])) { f.state = 'idle'; f.t = 0; }
   } else {
     if (grounded) f.facing = o.x > f.x ? 1 : -1;
     const dir = (inp.right ? 1 : 0) - (inp.left ? 1 : 0), fwd = dir !== 0 && dir === f.facing, away = dir !== 0 && dir === -f.facing;
-    const threat = (['atk', 'super'].includes(o.state) && Math.abs(o.x - f.x) < 2.6) || game.fx.some(e => e.type === 'proj' && e.owner === o);
+    const threat = (o.state === 'super' && o.shipable) || (['atk', 'super'].includes(o.state) && Math.abs(o.x - f.x) < 2.6) || game.fx.some(e => e.type === 'proj' && e.owner === o);
     if (inp.punch) f.buf = { k: 'P', t: 0.2 }; if (inp.kick) f.buf = { k: 'K', t: 0.2 };
     const crouch = inp.down && grounded;
     if (away && threat && grounded) { f.state = 'block'; f.crouchBlock = crouch; f.vx = 0; }        // hold back to block (down-back blocks low)
@@ -1242,7 +1285,7 @@ function update(f, o, inp) {
       startMove(f, name);
     }
     else if (inp.domain && f.meter >= 100 && !f.domUsed && grounded) startDomain(f, o);
-    else if (inp.super && f.meter >= 100) startSuper(f);
+    else if (inp.super && f.meter >= 100) startSuper(f, f.key === 'aman' && (inp.shipable || inp.down));
     else if (inp.taunt && f.tauntCd <= 0) { say(f, pick(f.c.lines.taunt)); f.tauntCd = 2; f.meter = Math.min(100, f.meter + 6); }
   }
   physics(f);
@@ -1295,7 +1338,10 @@ function hit(att, def, dmg, kb, opts = {}) {
     def.hp = Math.round(MAXHP * 0.45); def.state = 'idle'; def.t = 0; def.air = 0; def.y = 0; def.vy = 0; def.vx = 0; def.invT = 1.3; def.meter = Math.min(100, def.meter + 35);
     att.state = 'hit'; att.t = 0; att.stun = 0.5; att.vx = toAtt * 6.5; reviveFX(def); return;
   }
-  if (def.hp <= 0) ko(def, att);
+  if (def.hp <= 0) {
+    ko(def, att);
+    if (opts.shipable) { def.shipableKO = true; def.vy = 8; }
+  }
 }
 function ko(def, att) {
   game.slowT = 1.3; flash(0.4);
@@ -1307,12 +1353,26 @@ function ko(def, att) {
   const g0 = game;
   setTimeout(() => { if (game === g0) say(att, att.c.lines.win); }, 900);
 }
-function startSuper(f) {
+function startSuper(f, shipable = false) {
+  f.shipable = shipable;
+  if (shipable) f.shipableUsed = true;
   f.meter = 0; f.state = 'super'; f.t = 0; f.vx = 0; f.fired = {}; sfx('super');
-  say(f, f.c.lines.super); showCenter(f.c.superName, f.c.ui); game.shake = 0.12; game.hitstop = 0.6;
+  say(f, f.c.lines.super); showCenter(shipable ? 'SHIPABLE ATTACK!' : f.c.superName, f.c.ui); game.shake = 0.12; game.hitstop = 0.6;
 }
 function once(f, tag, at) { if (f.t >= at && !f.fired[tag]) { f.fired[tag] = true; return true; } return false; }
 function superStep(f, o) {
+  if (f.shipable) {
+    if (net?.role === 'guest') return;
+    if (once(f, 'ring', 4.4)) { sfx('thud'); game.shake = 0.22; }
+    if (once(f, 'charge', 9.5)) sfx('domain');
+    if (once(f, 'warning', 12.7)) { sfx('super'); game.shake = 0.25; }
+    if (once(f, 'shipable', SHIPABLE_FIRE)) {
+      sfx('thud'); flash(0.35); game.shake = 0.5;
+      if (o.state === 'down' || o.invT > 0) floatText(o, 'MISS!', '#ccc', 26);
+      else hit(f, o, 24, 4, { super: true, launch: true, shipable: true });
+    }
+    return;
+  }
   if (f.key === 'himanshu') {
     for (let i = 0; i < 5; i++) if (once(f, 'b' + i, 0.15 + i * 0.15)) {
       const s = textSprite(pick(['BHAIYA!', 'BHAIYA!!', 'BHAIYAAA!']), { size: 70, bg: '#ffcc00' }, 0.42);
@@ -1366,6 +1426,172 @@ function superStep(f, o) {
   }
 }
 
+// Shipable visuals use the same fighter clocks on both screens.
+function makeShipableRing() {
+  const group = new THREE.Group();
+  scene.add(group);
+  const beamGeo = new THREE.CylinderGeometry(1, 1, 1, 12);
+  const beamMat = new THREE.MeshBasicMaterial({
+    color: '#caff93', transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  const sealGeo = new THREE.RingGeometry(0.94, 1, 8);
+  const seals = [0, 1, 2].map(() => {
+    const seal = new THREE.Mesh(sealGeo, beamMat);
+    seal.rotation.x = -Math.PI / 2;
+    group.add(seal);
+    return seal;
+  });
+  const core = glowSprite('#caff93', 0.01);
+  group.add(core);
+  const clones = Array.from({ length: 8 }, (_, i) => {
+    const fighter = new Fighter('aman', 0, 1, false);
+    fighter.shipable = true;
+    fighter.root.scale.setScalar(0.8);
+    const charge = glowSprite('#7dff9b', 0.3);
+    const beam = new THREE.Mesh(beamGeo, beamMat);
+    group.add(fighter.root, charge, beam);
+    return { fighter, angle: (i + 0.5) * Math.PI / 4, charge, beam };
+  });
+  return { group, seals, sealGeo, core, clones, beamGeo, beamMat };
+}
+
+function clearShipable(G) {
+  for (const f of [G.p1, G.p2]) {
+    const fx = f.shipableFX;
+    if (fx) {
+      for (const { fighter, charge } of fx.clones) {
+        fighter.dispose();
+        fighter.mats.concat(fighter.tmats).forEach(m => m.dispose());
+        const skeletons = new Set();
+        fighter.model.traverse(o => { if (o.isSkinnedMesh) skeletons.add(o.skeleton); });
+        skeletons.forEach(skeleton => skeleton.dispose());
+        for (const glove of fighter.gloves || []) {
+          glove.children.forEach(o => { o.geometry.dispose(); o.material.dispose(); });
+        }
+        charge.material.dispose();
+      }
+      scene.remove(fx.group);
+      fx.sealGeo.dispose();
+      fx.core.material.dispose();
+      fx.beamGeo.dispose();
+      fx.beamMat.dispose();
+      f.shipableFX = null;
+    }
+    clearShipableDebris(f);
+    f.root.visible = true;
+  }
+  G.shipableFocus = null;
+}
+
+function clearShipableDebris(f) {
+  const debris = f.shipableDebris;
+  if (!debris) return;
+  scene.remove(debris.group);
+  debris.geometry.dispose();
+  debris.materials.forEach(m => m.dispose());
+  f.shipableDebris = null;
+}
+
+function renderShipableShatter(f, elapsed) {
+  if (elapsed >= 0.85) { clearShipableDebris(f); return; }
+  if (!f.shipableDebris) {
+    const group = new THREE.Group();
+    group.position.set(f.x, f.y + 0.85, 0);
+    const geometry = new THREE.IcosahedronGeometry(1);
+    const materials = [f.c.ui, '#caff93', '#f6ffe3'].map(color =>
+      new THREE.MeshBasicMaterial({ color, transparent: true, depthWrite: false })
+    );
+    const pieces = Array.from({ length: 36 }, (_, i) => {
+      const mesh = new THREE.Mesh(geometry, materials[i % materials.length]);
+      const angle = i * 2.39996;
+      const size = 0.055 + (i % 6) * 0.018;
+      const start = new THREE.Vector3(Math.cos(angle) * 0.22, (i / 35 - 0.5) * 1.35, Math.sin(angle) * 0.2);
+      const velocity = new THREE.Vector3(Math.cos(angle) * (2 + i % 4), 1 + (i % 7) * 0.55, Math.sin(angle) * 3);
+      mesh.scale.set(size, size * 1.5, size * 0.55);
+      group.add(mesh);
+      return { mesh, start, velocity };
+    });
+    scene.add(group);
+    f.shipableDebris = { group, geometry, materials, pieces };
+  }
+  const { materials, pieces } = f.shipableDebris;
+  materials.forEach(m => { m.opacity = Math.min(1, (0.85 - elapsed) * 3); });
+  for (const { mesh, start, velocity } of pieces) {
+    mesh.position.copy(start).addScaledVector(velocity, elapsed);
+    mesh.position.y -= 5 * elapsed * elapsed;
+    mesh.rotation.set(elapsed * velocity.z * 3, elapsed * velocity.y * 2, elapsed * velocity.x * 2);
+  }
+}
+
+function renderShipable(G) {
+  G.shipableFocus = null;
+  for (const [f, o] of [[G.p1, G.p2], [G.p2, G.p1]]) {
+    const finishing = G.phase === 'ko' && G.winner === f && o.shipableKO;
+    const active = G.phase === 'fight' && f.state === 'super' && f.shipable;
+    const t = finishing ? SHIPABLE_FIRE + G.t : f.t;
+    const visible = (active || finishing) && t < SHIPABLE_END;
+    if (visible) {
+      const fx = f.shipableFX ||= makeShipableRing();
+      fx.group.visible = true;
+      G.shipableFocus = { fighter: o, t };
+      const firing = t >= SHIPABLE_FIRE - 0.09;
+      const fade = clamp((SHIPABLE_END - t) / 0.5, 0, 1);
+      const chargeLevel = smooth(clamp((t - 8.8) / 5.4, 0, 1));
+      const orbit = smooth(clamp((t - 3.6) / 9, 0, 1)) * Math.PI * 1.5;
+      const lift = 0.55 * chargeLevel * (1 - smooth(clamp((t - 13.8) / 0.5, 0, 1)));
+      o.root.position.y += lift;
+      const target = new THREE.Vector3(o.x, o.y + lift + 1.12, 0);
+      fx.beamMat.opacity = (firing ? 0.96 : 0.32 + chargeLevel * 0.3) * fade;
+      fx.core.position.copy(target);
+      fx.core.material.opacity = fade * (firing ? 1 : chargeLevel * 0.65);
+      fx.core.scale.setScalar(firing ? 2.8 * fade : 0.2 + chargeLevel * (0.8 + 0.2 * Math.sin(t * 11)));
+      for (const [i, seal] of fx.seals.entries()) {
+        const pulse = ((Math.max(0, t - 3.4) * (0.4 + chargeLevel * 0.5) + i / 3) % 1);
+        seal.visible = t > 3.4;
+        seal.position.set(o.x, 0.035 + i * 0.008, 0);
+        seal.rotation.z = orbit * (i % 2 ? -1 : 1);
+        seal.scale.setScalar(firing ? 1.8 + (1 - fade) * 3.4 : lerp(1.15, 2.7, pulse));
+      }
+      for (const [i, { fighter, angle: slot, charge, beam }] of fx.clones.entries()) {
+        const enter = smooth(clamp((t - 0.45 * i) / 1.05, 0, 1));
+        const angle = slot + orbit;
+        const radius = lerp(3.2, 2.05, enter) + chargeLevel * 0.32;
+        fighter.x = o.x + Math.cos(angle) * radius;
+        fighter.y = (1 - enter) * 0.65 + chargeLevel * (0.42 + Math.sin(t * 4 + i) * 0.18);
+        fighter.facing = Math.cos(angle) > 0 ? -1 : 1;
+        fighter.state = 'super';
+        fighter.t = t;
+        fighter.root.visible = enter > 0.03;
+        fighter.root.scale.setScalar(Math.max(0.01, enter * fade * 0.8));
+        const yaw = Math.atan2(-Math.cos(angle), -Math.sin(angle));
+        fighter.root.rotation.y = yaw;
+        syncFighter(fighter, yaw, false);
+        fighter.root.position.z = Math.sin(angle) * radius;
+        const origin = (fighter.gloves?.[1] || fighter.bones.RightHand).getWorldPosition(new THREE.Vector3());
+        charge.position.copy(origin);
+        const arc = t > 6 && t < 12.5 && (t * 1.8 + i / 8) % 1 < 0.13;
+        charge.scale.setScalar(enter * fade * (firing ? 0.85 : 0.14 + chargeLevel * 0.48));
+        beam.visible = fighter.root.visible && (firing || arc);
+        if (beam.visible) {
+          const next = angle + Math.PI / 4;
+          const end = firing ? target : new THREE.Vector3(o.x + Math.cos(next) * radius, origin.y, Math.sin(next) * radius);
+          const ray = end.clone().sub(origin);
+          const width = (firing ? 0.19 : 0.025) * fade * (1 + Math.sin(t * 64) * 0.22);
+          beam.scale.set(width, ray.length(), width);
+          beam.position.copy(origin).lerp(end, 0.5);
+          beam.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), ray.normalize());
+        }
+      }
+    } else if (f.shipableFX) f.shipableFX.group.visible = false;
+    const shattered = G.phase === 'ko' && f.shipableKO && G.t >= SHIPABLE_SHATTER;
+    f.root.visible = !shattered;
+    if (shattered) {
+      if (G.t < SHIPABLE_SHATTER + 0.85) G.shipableFocus = { fighter: f, t: SHIPABLE_FIRE + G.t };
+      renderShipableShatter(f, G.t - SHIPABLE_SHATTER);
+    }
+  }
+}
+
 // ---------------------------------------------------------------- effects
 function sparks(p, color, n) {
   if (netGate(['sp', p.x, p.y, p.z, color, n])) return;
@@ -1388,7 +1614,7 @@ function floatText(f, text, color, size) {
   const d = document.createElement('div'); d.className = 'ftext'; d.textContent = text; d.style.color = color; d.style.fontSize = size + 'px';
   $('fx').appendChild(d); game.fx.push({ type: 'text', el: d, pos: new THREE.Vector3(f.x + (Math.random() - 0.5) * 0.5, 1.85 + Math.random() * 0.25, 0.3), life: 1.1, max: 1.1 });
 }
-function clearFX() { if (!game) return; if (game.dom) domainEnd(game, true); game.fx.forEach(e => { if (e.el) e.el.remove(); [e.obj, e.a1, e.a2, e.label, ...(e.objs || [])].forEach(o => o && scene.remove(o)); }); game.fx = []; $('fx').innerHTML = ''; }
+function clearFX() { if (!game) return; clearShipable(game); if (game.dom) domainEnd(game, true); game.fx.forEach(e => { if (e.el) e.el.remove(); [e.obj, e.a1, e.a2, e.label, ...(e.objs || [])].forEach(o => o && scene.remove(o)); }); game.fx = []; $('fx').innerHTML = ''; }
 let centerTimer = 0;
 function superCut(f) {
   const c = $('cut'); c.classList.add('hidden'); void c.offsetWidth;
@@ -1423,6 +1649,10 @@ function stepFX() {
       if (e.life <= 0) { scene.remove(e.obj); return false; } return true;
     }
     if (e.type === 'proj') {
+      if ([game.p1, game.p2].some(f => f.state === 'super' && f.shipable)) {
+        if (e.life <= 0) scene.remove(e.obj);
+        return e.life > 0;
+      }
       e.obj.position.x += e.vx * DT; const opp = e.owner === game.p1 ? game.p2 : game.p1;
       if (opp.state !== 'ko' && Math.abs(e.obj.position.x - opp.x) < 0.4) { hit(e.owner, opp, e.dmg, 1.2, { super: true }); scene.remove(e.obj); return false; }
       if (e.life <= 0 || Math.abs(e.obj.position.x) > 9) { scene.remove(e.obj); return false; }
@@ -1453,6 +1683,11 @@ function stepFX() {
 const AI = { easy: { blk: .12, sup: .25, react: 0.4 }, normal: { blk: .35, sup: .5, react: 0.22 }, hard: { blk: .6, sup: .85, react: 0.12 } };
 function cpuInput(f, o) {
   if (window.__cpuOff) return {};
+  if (f.key === 'aman' && !f.shipableUsed && f.meter >= 100 && !f.buf &&
+      ['idle', 'walk', 'block', 'crouch', 'jump'].includes(f.state) &&
+      !['block', 'down'].includes(o.state) && !(o.invT > 0)) {
+    return { super: true, shipable: true };
+  }
   const D = AI[diff], inp = {}, dx = o.x - f.x, ad = Math.abs(dx);
   f.ai = f.ai || { t: 0, mode: 'approach' };
   const toward = dx > 0 ? 'right' : 'left', away = dx > 0 ? 'left' : 'right';
@@ -1488,15 +1723,29 @@ function step() {
   if (G.shake > 0) G.shake -= DT;
   if (G.dom) { domainStep(G); stepFX(); pressed.clear(); return; }      // a domain is open: the world belongs to its owner
   if (G.hitstop > 0) { G.hitstop -= DT; return; }   // impact freeze (inputs stay buffered)
-  G.t += DT; G.clock += DT;
   const { p1, p2 } = G;
+  const caster = G.phase === 'fight' && [p1, p2].find(f => f.state === 'super' && f.shipable);
+  if (caster) {
+    const target = caster === p1 ? p2 : p1;
+    const fired = caster.t >= SHIPABLE_FIRE;
+    update(caster, target, {});
+    if (fired) update(target, caster, {});
+    stepFX(); pressed.clear();
+    return;
+  }
+  G.t += DT; G.clock += DT;
   if (G.phase === 'intro') {
     update(p1, p2, {}); update(p2, p1, {});
     if (G.t < 0.05) showCenter(G.roundLabel, '#ffffff');
     if (G.t > 1.3 && !G.fightShown) { G.fightShown = true; showCenter('FIGHT!', '#ffcc00'); }
     if (G.t > 2.4) { G.phase = 'fight'; G.t = 0; }
   } else if (G.phase === 'fight') {
-    update(p1, p2, playerInput()); update(p2, p1, net ? remoteInput() : cpuInput(p2, p1));
+    const second = net ? remoteInput() : null;
+    update(p1, p2, playerInput());
+    if (p1.state === 'super' && p1.shipable) { pressed.clear(); return; }
+    if (G.phase !== 'fight') { pressed.clear(); return; }
+    update(p2, p1, second || cpuInput(p2, p1));
+    if (p2.state === 'super' && p2.shipable) { pressed.clear(); return; }
     if (!net) { G.dropT = (G.dropT === undefined ? 7 + Math.random() * 4 : G.dropT) - DT; if (G.dropT <= 0) { G.dropT = 10 + Math.random() * 7; dropItem(); } }
     [[p1, p2], [p2, p1]].forEach(([f, o]) => {                                        // Himanshu heals whenever he is behind, faster when nearly out
       if (f.key !== 'himanshu' || o.key === 'himanshu' || f.hp <= 0 || f.state === 'ko') return;
@@ -1517,12 +1766,13 @@ function step() {
   }
   stepFX(); pressed.clear();
 }
-function syncFighter(f, yaw) {
+function syncFighter(f, yaw, effects = true) {
   f.root.position.set(f.x, f.y, 0);
   f.tilt.rotation.z = 0;
   const turn = f.real ? 0.92 : 0.42;   // real bodies stand three-quarters to the camera, like the reference games
   const targetRot = yaw ?? (f.facing > 0 ? Math.PI / 2 - turn : -Math.PI / 2 + turn);
-  f.root.rotation.y = lerp(f.root.rotation.y, targetRot, 0.35);
+  const turnDelta = targetRot - f.root.rotation.y;
+  f.root.rotation.y += Math.atan2(Math.sin(turnDelta), Math.cos(turnDelta)) * 0.35;
   // falling over on a KO
   let fall = f.state === 'ko' ? Math.min(1, f.t / 0.45) : 0;
   if (f.state === 'down') fall = f.t < 0.35 ? f.t / 0.35 : f.t < 0.85 ? 1 : Math.max(0, 1 - (f.t - 0.85) / 0.3);
@@ -1540,7 +1790,7 @@ function syncFighter(f, yaw) {
   if (f.full) f.mats.forEach(m => { m.emissive.set(f.flash > 0 ? '#ff6a6a' : '#ffffff'); m.emissiveIntensity = f.flash > 0 ? 0.7 : (f.emI || 0.2); });
   if (f.tmats) f.tmats.forEach(m => m.emissive.set(f.flash > 0 ? '#5a1414' : '#000000'));
   else if (f.real) f.mats.forEach(m => { m.emissive.set(f.flash > 0 ? '#ff2020' : '#000000'); m.emissiveIntensity = f.flash > 0 ? 0.5 : 0; });
-  updateFace(f); fighterFX(f);
+  if (effects) { updateFace(f); fighterFX(f); }
 }
 
 // the photo head always turns toward the camera (like the reference games), with a little tilt for hits and falls
@@ -1578,12 +1828,12 @@ function fighterFX(f) {
     const an = f.move.anim, src = (an === 'kick' || an === 'flykick' || an === 'sweep') ? f.bones.RightFoot : (f.gloves ? f.gloves[f.move.hand === 'L' ? 0 : 1] : f.bones[f.move.hand === 'L' ? 'LeftHand' : 'RightHand']);
     if (src) { src.getWorldPosition(_wp); PFX(glowSprite(f.c.ui, an === 'punch' ? 0.15 : 0.18), _wp, new THREE.Vector3(), 0.1, { grow: -6 }); }
   }
-  if (s === 'super') {                                                                   // power-up aura
+  if (s === 'super' && !f.shipable) {                                                    // power-up aura
     for (let i = 0; i < 2; i++) PFX(glowSprite(f.c.ui, 0.12 + Math.random() * 0.1), new THREE.Vector3(f.x + (Math.random() - .5) * 0.9, Math.random() * 1.6, (Math.random() - .5) * 0.6), new THREE.Vector3(0, 1.6 + Math.random() * 1.5, 0), 0.55, {});
     if (!f.sLight) { f.sLight = new THREE.PointLight(f.c.ui, 0, 7); f.sLight.position.set(0, 1.5, 0.9); f.root.add(f.sLight); }
   }
-  if (f.sLight) f.sLight.intensity = lerp(f.sLight.intensity, s === 'super' ? 30 : 0, 0.2);
-  if ((s === 'down' || s === 'ko') && !f.dusted && f.t > 0.32) {                          // dust when a body hits the floor
+  if (f.sLight) f.sLight.intensity = lerp(f.sLight.intensity, s === 'super' && !f.shipable ? 30 : 0, 0.2);
+  if ((s === 'down' || (s === 'ko' && !f.shipableKO)) && !f.dusted && f.t > 0.32) {                          // dust when a body hits the floor
     f.dusted = true;
     const ring = new THREE.Mesh(new THREE.RingGeometry(0.35, 0.5, 40), new THREE.MeshBasicMaterial({ color: '#d8cdb8', transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false })); ring.rotation.x = -Math.PI / 2;
     PFX(ring, new THREE.Vector3(f.x - f.facing * 0.7, 0.03, 0), new THREE.Vector3(), 0.5, { grow: 4 });
@@ -1611,12 +1861,12 @@ function updateFace(f) {
   F.glow.forEach(g => { g.visible = sup || (f.meter >= 100 && !downed); g.scale.setScalar(sup ? 0.11 + Math.sin(now * 30) * 0.025 : 0.055); });
   F.xs.forEach(x => x.visible = downed);
   const hp = E[0].parent.getWorldPosition(_wp).clone();
-  F.stars.forEach((st, i) => { st.visible = downed && f.t > 0.3; const a = now * 4 + i * 2.1; st.position.set(hp.x + Math.cos(a) * 0.28, hp.y + 0.32, hp.z + Math.sin(a) * 0.28); });
+  F.stars.forEach((st, i) => { st.visible = downed && !f.shipableKO && f.t > 0.3; const a = now * 4 + i * 2.1; st.position.set(hp.x + Math.cos(a) * 0.28, hp.y + 0.32, hp.z + Math.sin(a) * 0.28); });
   if (f.tauntCd > 1.2 && !F.vein) { F.vein = textSprite('💢', { size: 80, bg: null, fg: '#ff3030' }, 0.16); F.mid.add(F.vein); F.vein.position.set(0.09, 0.1, 0.02); }
   if (F.vein) F.vein.visible = f.tauntCd > 1.2 && !downed;
   if (f.hp <= LOWHP && !F.sweat) { F.sweat = textSprite('💦', { size: 80, bg: null, fg: '#7fd3ff' }, 0.14); F.mid.add(F.sweat); }
   if (F.sweat) { F.sweat.visible = f.hp <= LOWHP && !downed && s !== 'win'; F.sweat.position.set(-0.11, 0.06 + Math.sin(now * 6) * 0.015, 0.02); }
-  if (s === 'win') {                                                                    // deal-with-it shades drop on
+  if (s === 'win' || s === 'amanDance') {                                               // deal-with-it shades drop on
     F.shades.visible = true; F.shades.position.set(0, Math.max(0, 0.3 - f.t * 0.45), 0.014);
   } else F.shades.visible = false;
   // squash on a hit, a little swell when shouting a super or talking
@@ -1856,6 +2106,9 @@ function updateHUD() {
     f._hpPrev = f.hp;
     $('mb' + i).style.width = f.meter + '%'; $('mt' + i).classList.toggle('full', f.meter >= 100);
     $('rd' + i).textContent = f.meter >= 100 ? ((f.cpu || COARSE) ? 'SUPER READY' : 'SUPER (L)' + (f.domUsed ? '' : '  ·  DOMAIN (O)')) : '';
+    if (f.key === 'aman' && i === (net?.role === 'guest' ? 1 : 0) && f.meter >= 100) {
+      $('rd' + i).textContent += COARSE ? ' · ↓ + SUPER: SHIPABLE' : ' · ↓ + L: SHIPABLE';
+    }
     $('dm' + i).className = 'dm' + (f.domUsed ? ' used' : f.meter >= 100 ? ' on' : '');
     if (i === ((net && net.role === 'guest') ? 1 : 0) && $('tS')) { $('tS').classList.toggle('on', f.meter >= 100); $('tD').classList.toggle('on', f.meter >= 100 && !f.domUsed); $('tD').classList.toggle('used', !!f.domUsed); }
     $('nm' + i).textContent = (i ? '★'.repeat(G.wins[1]) + '  ' : '') + f.c.name + '  (' + f.tag + ')' + (i ? '' : '  ' + '★'.repeat(G.wins[0]));
@@ -1886,6 +2139,24 @@ function showEnd() {
 const camTarget = new THREE.Vector3(0, 1.2, 0);
 function updateCamera(time) {
   if (window.__camFreeze) return;
+  const focus = game?.shipableFocus;
+  if (focus) {
+    const { fighter: target, t } = focus;
+    const swing = Math.sin(t * 0.58) * 2.8;
+    const overhead = smooth(clamp((t - 2.8) / 2, 0, 1)) * (1 - smooth(clamp((t - 9.8) / 2, 0, 1)));
+    const shake = t >= SHIPABLE_FIRE ? Math.sin(time * 83) * 0.13 : 0;
+    camera.position.lerp(new THREE.Vector3(target.x + swing + shake, 3.1 + overhead * 2.7, 6.8 + overhead * 0.8), 0.12);
+    camTarget.lerp(new THREE.Vector3(target.x, 1.1 + target.y * 0.45, 0), 0.15);
+    camera.lookAt(camTarget);
+    return;
+  }
+  const dance = game && amanVictoryDance(game);
+  if (dance && dance.t < AMAN_DANCE_FINISH + 1.15) {
+    camera.position.lerp(new THREE.Vector3(dance.x + 0.35, 1.85, 4.7), 0.07);
+    camTarget.lerp(new THREE.Vector3(dance.x, 1.03, 0), 0.1);
+    camera.lookAt(camTarget);
+    return;
+  }
   const cf = game && (game.cine ? game.cine.f : (game.slowT > 0 && game.winner ? game.winner : null));
   if (cf) { const side = cf.facing; camera.position.lerp(new THREE.Vector3(cf.x + side * 1.3, 1.5, 3.1), 0.2); camTarget.lerp(new THREE.Vector3(cf.x, 1.3, 0), 0.25); camera.lookAt(camTarget); return; }
   let mid = 0, dist = 3.6;
@@ -1966,7 +2237,7 @@ $('tickText').textContent = TICKER.join('      ●      ');
 
 // ================================================================== online: play with a friend (PeerJS room code; the host runs the fight)
 let net = null;
-const SNAP = ['x', 'y', 'vx', 'vy', 'facing', 'hp', 'meter', 'state', 't', 'moveName', 'chain', 'stun', 'flash', 'tauntCd', 'crouchBlock', 'anim', 'hits', 'air', 'domUsed'];
+const SNAP = ['x', 'y', 'vx', 'vy', 'facing', 'hp', 'meter', 'state', 't', 'moveName', 'chain', 'stun', 'flash', 'tauntCd', 'crouchBlock', 'anim', 'hits', 'air', 'domUsed', 'shipable', 'shipableKO'];
 function netGate(ev) {            // true = do not run locally
   if (!net || !game) return false;
   if (net.role === 'guest') return !net.replay;
@@ -1974,8 +2245,8 @@ function netGate(ev) {            // true = do not run locally
 }
 function netSend(m) { try { if (net && net.conn && net.conn.open) net.conn.send(m); } catch (e) {} }
 function remoteInput() {
-  const r = net.remote, inp = { left: r.left, right: r.right, down: r.down, up: r.up, punch: r.punch, kick: r.kick, grab: r.grab, super: r.super, taunt: r.taunt };
-  r.up = r.punch = r.kick = r.grab = r.super = r.taunt = false; return inp;
+  const r = net.remote, inp = { left: r.left, right: r.right, down: r.down, up: r.up, punch: r.punch, kick: r.kick, grab: r.grab, super: r.super, shipable: r.shipable, taunt: r.taunt };
+  r.up = r.punch = r.kick = r.grab = r.super = r.shipable = r.taunt = false; return inp;
 }
 function sendSnap() {
   const G = game, f = x => { const o = {}; SNAP.forEach(k => o[k] = x[k]); return o; };
@@ -2006,7 +2277,7 @@ function guestStep() {
 }
 function netStatus(t) { $('netStatus').textContent = t; $('netMsg').textContent = t; }
 function netOnData(m) {
-  if (m.t === 'in' && net.role === 'host') { const r = net.remote, i = m.i; r.left = !!i.left; r.right = !!i.right; r.down = !!i.down; ['up', 'punch', 'kick', 'grab', 'super', 'taunt'].forEach(k => { if (i[k]) r[k] = true; }); }
+  if (m.t === 'in' && net.role === 'host') { const r = net.remote, i = m.i; r.left = !!i.left; r.right = !!i.right; r.down = !!i.down; ['up', 'punch', 'kick', 'grab', 'super', 'taunt'].forEach(k => { if (i[k]) r[k] = true; }); if (i.super && i.down) r.shipable = true; }
   else if (m.t === 's' && game) { net.last = m; net.evq.push(...m.ev); }
   else if (m.t === 'pick') { sel[m.side] = m.k; if (!game) { refreshCards(); refreshPreview(); } }
   else if (m.t === 'start') { sel.p1 = m.p1; sel.p2 = m.p2; previews.forEach(p => p.dispose()); previews = []; net.last = null; net.evq = []; startFight(); }
@@ -2084,7 +2355,7 @@ function frame(now) {
     if (game) { if (net && net.role === 'guest') guestStep(); else { step(); if (net && game) sendSnap(); } }
     else { pressed.clear(); previews.forEach(f => { f.t += DT; f.anim = (f.anim || 0) + 1; }); }
   }
-  if (game) { renderRoundFighters(game); renderCameo(game); updateHUD(); }
+  if (game) { renderRoundFighters(game); renderShipable(game); renderCameo(game); updateHUD(); }
   else previews.forEach(f => { f.root.position.set(f.x, 0, 0); f.mixer.update(el); f.guardW = 1; applyPose(f); faceCamera(f); });
   if (centerTimer > 0 && centerTimer < 1e8 && (centerTimer -= el) <= 0) $('center').textContent = '';
   { const sup = game && (game.p1.state === 'super' || game.p2.state === 'super' || game.cine); window.__hemi.intensity = lerp(window.__hemi.intensity, sup ? 0.22 : 1.0, 0.15); window.__key.intensity = lerp(window.__key.intensity, sup ? 0.5 : 2.0, 0.15); }
