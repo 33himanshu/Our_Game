@@ -40,6 +40,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 .mt{height:11px;background:#0d0f1a;border:2px solid #0b0c14;border-radius:3px;overflow:hidden;width:60%;transform:skewX(-16deg);box-shadow:0 0 0 1px #6b63c9}
 .side.r .mt{transform:skewX(16deg)}
 .mt b{display:block;height:100%;width:0;background:linear-gradient(#b9adff,#6f5cf0);transition:width .1s}
+.st{height:5px;width:38%;margin-top:4px;background:#0d0f1a;border-radius:2px;overflow:hidden;transform:skewX(-16deg);box-shadow:0 0 0 1px rgba(255,255,255,.28)}.side.r .st{transform:skewX(16deg);margin-left:auto}.st b{display:block;height:100%;width:100%;background:#5fd0ff;transition:width .12s}.st.low b{background:#ff7a59}
 .mt.full b{background:var(--gold);animation:blink .35s infinite alternate}
 @keyframes blink{to{filter:brightness(1.8)}}
 .lab{font-size:12px;color:var(--muted);letter-spacing:1px;margin-top:1px}
@@ -190,9 +191,9 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 <canvas id="c"></canvas>
 
 <div id="hud" class="hidden">
-  <div class="side l"><img class="pf" id="pf0" alt=""><div class="bars"><div class="nm" id="nm0"></div><div class="hp"><i id="hw0"></i><b id="hb0"></b></div><div class="mrow"><div class="mt" id="mt0"><b id="mb0"></b></div><span class="dm" id="dm0">◆</span></div><div class="ready" id="rd0"></div></div></div>
+  <div class="side l"><img class="pf" id="pf0" alt=""><div class="bars"><div class="nm" id="nm0"></div><div class="hp"><i id="hw0"></i><b id="hb0"></b></div><div class="mrow"><div class="mt" id="mt0"><b id="mb0"></b></div><span class="dm" id="dm0">◆</span></div><div class="st" id="st0"><b id="sb0"></b></div><div class="ready" id="rd0"></div></div></div>
   <div id="timer">60</div>
-  <div class="side r"><img class="pf" id="pf1" alt=""><div class="bars"><div class="nm" id="nm1"></div><div class="hp"><i id="hw1"></i><b id="hb1"></b></div><div class="mrow"><div class="mt" id="mt1"><b id="mb1"></b></div><span class="dm" id="dm1">◆</span></div><div class="ready" id="rd1"></div></div></div>
+  <div class="side r"><img class="pf" id="pf1" alt=""><div class="bars"><div class="nm" id="nm1"></div><div class="hp"><i id="hw1"></i><b id="hb1"></b></div><div class="mrow"><div class="mt" id="mt1"><b id="mb1"></b></div><span class="dm" id="dm1">◆</span></div><div class="st" id="st1"><b id="sb1"></b></div><div class="ready" id="rd1"></div></div></div>
 </div>
 <div id="topbtns" class="hidden"><button id="muteTop">🔊</button><button id="menuTop">MENU</button></div>
 <div id="center"></div>
@@ -216,7 +217,7 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
     <div class="row"><span class="lbl">STAGE</span><button class="on">STAGE-1 MAIN · 3 AM</button><span class="lbl">CPU</span><button data-d="easy">EASY</button><button data-d="normal" class="on">NORMAL</button><button data-d="hard">HARD</button></div>
     <div class="row"><button id="muteBtn">🔊 VOICE ON</button><button id="friendBtn" style="background:#2456c9;border-color:#6f9bff">🌐 PLAY WITH A FRIEND</button><button id="fightBtn" class="big">FIGHT!</button></div>
     <div class="help" id="netStatus" style="color:#ffcc00"></div>
-    <div class="help">←/→ your fighter · ↑/↓ the computer's · 1/2/3 difficulty · Enter fight<br>In the fight: A/D move · W jump · S crouch · hold BACK block · J punch · K kick · I or J+K grab · L/Space super · Esc pause</div>
+    <div class="help">←/→ your fighter · ↑/↓ the computer's · 1/2/3 difficulty · Enter fight<br>In the fight: A/D move · W jump · S crouch · hold BACK block · tap BACK just before a hit to PARRY · J punch · K kick · I or J+K grab · L/Space super · Esc pause</div>
   </div>
 </div>
 
@@ -244,14 +245,14 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 </div>
 <div id="rot"><div>↻</div>Turn your phone sideways to play</div>
 
-<script src="models/xbot.js?v=1795689027"></script>
+<script src="models/xbot.js?v=1795689900"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <div id="speed" style="position:fixed;inset:0;pointer-events:none;opacity:0;z-index:6;background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0) 0deg 5deg, rgba(255,255,255,.55) 5deg 6deg);-webkit-mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%);mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%)"></div>
-<script src="mocap.js?v=1795689027"></script>
-<script src="anim.js?v=1795689027"></script>
-<script src="faces.js?v=1795689027"></script>
-<script src="faces_real.js?v=1795689027"></script>
-<script src="models/bodies.js?v=1795689027"></script>
+<script src="mocap.js?v=1795689900"></script>
+<script src="anim.js?v=1795689900"></script>
+<script src="faces.js?v=1795689900"></script>
+<script src="faces_real.js?v=1795689900"></script>
+<script src="models/bodies.js?v=1795689900"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -1078,7 +1079,7 @@ function setMusic(on) {   // a low crowd rumble in the arena (M)
 
 function say(f, line) { if (netGate(['sy', f === game.p1 ? 0 : 1, line])) return; f.bubble = line.r; f.bubbleT = 2.6; speak(f.c, line); }
 function resetFighter(f, x, facing) {
-  Object.assign(f, { x, y: 0, vx: 0, vy: 0, facing, hp: MAXHP, hpShow: MAXHP, state: 'idle', t: 0, chain: '', buf: null, stun: 0, flash: 0, move: null, hits: 0, air: 0, bounced: 0, critNext: false, rageOn: false, airRot: 0, domUsed: false, invT: 0, inDom: 0 });
+  Object.assign(f, { x, y: 0, vx: 0, vy: 0, facing, hp: MAXHP, hpShow: MAXHP, state: 'idle', t: 0, chain: '', buf: null, stun: 0, flash: 0, move: null, hits: 0, air: 0, bounced: 0, critNext: false, rageOn: false, airRot: 0, domUsed: false, invT: 0, inDom: 0, stam: 100, tired: 0, blockAge: 9, parryCd: 0, parryNext: false, juggle: 0 });
   f.tilt.rotation.set(0, 0, 0); f.tilt.position.set(0, 0, 0);
 }
 function startFight() {
@@ -1110,6 +1111,7 @@ function physics(f) {
 }
 function startMove(f, name) {
   const mv = MOVES[name]; f.state = 'atk'; f.move = mv; f.moveName = name; f.t = 0; f.hitDone = false; f.buf = null;
+  f.tired = (f.stam ?? 100) <= 0 ? 1 : 0; if (f.tired) { f.stam = 32; floatText(f, 'TIRED', '#9aa3b5', 18); }
   if (mv.vy) f.vy = mv.vy; if (mv.vx0) f.vx = f.facing * mv.vx0;
   sfx('whoosh');
 }
@@ -1117,6 +1119,8 @@ function update(f, o, inp) {
   f.t += DT; f.anim = (f.anim || 0) + 1;
   if (f.flash > 0) f.flash -= DT; if (f.bubbleT > 0) f.bubbleT -= DT; if (f.tauntCd > 0) f.tauntCd -= DT; if (f.invT > 0) f.invT -= DT;
   if (f.buf && (f.buf.t -= DT) <= 0) f.buf = null;
+  if (f.parryCd > 0) f.parryCd -= DT; if (f.state === 'block') f.blockAge = (f.blockAge || 0) + DT;
+  if (f.state === 'atk') { if (f.tired) f.t -= DT * 0.42; } else if ((f.stam ?? 100) < 100) f.stam = Math.min(100, (f.stam ?? 100) + 17 * DT);      // out of breath: the swing comes out slow; breath comes back when you stop swinging
   f.hpShow = lerp(f.hpShow, f.hp, 0.06);
   const grounded = f.y <= 0;
   if (f.state === 'domain' || f.state === 'domheld') return;
@@ -1146,10 +1150,10 @@ function update(f, o, inp) {
   } else {
     if (grounded) f.facing = o.x > f.x ? 1 : -1;
     const dir = (inp.right ? 1 : 0) - (inp.left ? 1 : 0), fwd = dir !== 0 && dir === f.facing, away = dir !== 0 && dir === -f.facing;
-    const threat = (['atk', 'super'].includes(o.state) && Math.abs(o.x - f.x) < 2.6) || game.fx.some(e => e.type === 'proj' && e.owner === o);
+    const threat = (['atk', 'super'].includes(o.state) && Math.abs(o.x - f.x) < 2.6) || game.fx.some(e => e.type === 'proj' && e.owner === o) || (game.dom && game.dom.f === o && game.dom.soon);
     if (inp.punch) f.buf = { k: 'P', t: 0.2 }; if (inp.kick) f.buf = { k: 'K', t: 0.2 };
     const crouch = inp.down && grounded;
-    if (away && threat && grounded) { f.state = 'block'; f.crouchBlock = crouch; f.vx = 0; }        // hold back to block (down-back blocks low)
+    if (away && threat && grounded) { if (f.state !== 'block') { f.blockAge = f.parryCd > 0 ? 9 : 0; f.parryCd = 0.45; } f.state = 'block'; f.crouchBlock = crouch; f.vx = 0; }        // hold back to block (down-back blocks low)
     else if (crouch) { f.state = 'crouch'; f.vx = 0; }
     else {
       f.vx = dir * (fwd ? WALK : WALK_BACK); if (inp.up && grounded) f.vy = JUMPV;
@@ -1171,16 +1175,18 @@ function update(f, o, inp) {
   physics(f);
 }
 function attackCheck(f, o, mv) {
-  if (f.hitDone || f.t < mv.a || f.t > mv.b || o.state === 'ko' || o.state === 'down') return;
+  const jug = o.state === 'down' && o.air && (o.juggle || 0) < 2 && !mv.grab;
+  if (f.hitDone || f.t < mv.a || f.t > mv.b || o.state === 'ko' || (o.state === 'down' && !jug)) return;
   const dx = (o.x - f.x) * f.facing;
-  if (!(dx > 0 && dx < mv.range && Math.abs(o.y - f.y) < 1.0)) return;
+  if (!(dx > 0 && dx < mv.range && Math.abs(o.y - f.y) < (jug ? 1.5 : 1.0))) return;
   if (mv.high && (o.state === 'crouch' || (o.state === 'block' && o.crouchBlock))) return;   // high attacks sail over a crouch
   if (mv.grab && (o.y > 0.05 || o.state === 'atk')) return;
   f.hitDone = true;
   hit(f, o, mv.dmg, mv.kb, { low: mv.low, overhead: mv.air, grab: mv.grab, knockdown: mv.knockdown || f.moveName === 'upper', name: NAMES[f.key][f.moveName] });
 }
 function hit(att, def, dmg, kb, opts = {}) {
-  if (!game || def.state === 'ko' || def.state === 'down' || game.phase === 'ko') return;
+  const jug = def.state === 'down' && def.air && (def.juggle || 0) < 2 && !opts.super && !opts.grab;
+  if (!game || def.state === 'ko' || (def.state === 'down' && !jug) || game.phase === 'ko') return;
   if (net && net.role === 'guest') return;   // the host decides every hit
   if (def.invT > 0) return;                  // just got back up: untouchable for a moment
   const toAtt = Math.sign(att.x - def.x) || 1;
@@ -1189,20 +1195,38 @@ function hit(att, def, dmg, kb, opts = {}) {
   if (blocking && opts.overhead && def.crouchBlock) blocking = false;    // jump-ins beat a crouching block
   if (opts.grab) blocking = false;                                       // grabs beat blocking
   const hp = def.bones.Spine2.getWorldPosition(new THREE.Vector3());
-  if (blocking && opts.super) { floatText(def, 'BLOCKED!', '#9cd4ff', 44); sfx('block'); hitSpark(def.x + toAtt * 0.3, hp.y + 0.15, toAtt, 3, 0); return; }
-  if (blocking) { dmg = Math.max(1, Math.round(dmg * 0.2)); def.vx = -toAtt * 1.5; hitSpark(def.x + toAtt * 0.3, clamp(contactPoint(att, def, hp, toAtt, opts).y, def.y + 0.9, def.y + 1.55), toAtt, 3, 0); game.hitstop = 0.05; sfx('block'); }
+  let fromParry = false;
+  if (jug) {                                                              // still in the air from a launch: one or two more can be landed before they come down
+    dmg = Math.max(1, Math.round(dmg * 0.6)); def.juggle = (def.juggle || 0) + 1; def.vy = 4.8; def.vx = -toAtt * 2.4; def.bounced = 1; def.t = 0.1; def.flash = 0.12;
+    const cp = contactPoint(att, def, hp, toAtt, opts); hitSpark(cp.x, clamp(cp.y, def.y + 0.4, def.y + 1.4), -toAtt, 1, 0); game.shake = Math.max(game.shake, 0.16); game.hitstop = 0.09; sfx('hit', dmg);
+    att.meter = Math.min(100, att.meter + dmg * 1.7); att.hits = (att.hits || 0) + 1; att.lastHitT = game.t; floatText(def, att.hits + ' HITS', '#ffffff', 20);
+    def.hp = Math.max(0, def.hp - dmg);
+    if (def.hp <= 0) { if (def.key === 'himanshu' && att.key !== 'himanshu' && !(game.dom && game.dom.f === att)) def.hp = 1; else ko(def, att); }
+    return;
+  }
+  const isCpu = !net && def.cpu && ['idle', 'walk', 'block'].includes(def.state) && def.facing === toAtt && def.y <= 0;
+  const parry = !opts.grab && (!opts.super || opts.dom) && ((blocking && (def.blockAge ?? 9) <= PARRY_WIN) || (isCpu && Math.random() < AI[diff].par * (opts.dom ? 0.6 : 1)) || (window.__forceParry && def === game.p2));
+  if (parry) {                                                            // blocked at the last instant: the blow is turned aside, the attacker is left open, the next hit is a critical
+    def.critNext = true; def.parryNext = true; def.meter = Math.min(100, def.meter + 12); def.stam = 100; def.state = 'block'; def.blockAge = 9; def.flash = 0;
+    hitSpark(def.x + toAtt * 0.32, clamp(hp.y + 0.15, def.y + 0.9, def.y + 1.6), toAtt, 4, 0); game.shake = Math.max(game.shake, 0.22); game.hitstop = 0.15; sfx('block'); sfx('bell');
+    if (opts.dom && game.dom) { const d = game.dom; d.parried = (d.parried || 0) + 1; floatText(def, 'PARRY ' + d.parried + '/3', '#bfeaff', 26); if (d.parried >= 3) d.breakNow = true; }
+    else { floatText(def, 'PARRY', '#bfeaff', 26); att.state = 'hit'; att.t = 0; att.stun = 0.62; att.hitHi = 1; att.vx = toAtt * 2.6; att.chain = ''; att.stam = Math.max(0, (att.stam ?? 100) - 20); }
+    return;
+  }
+  if (blocking && opts.super && !opts.dom) { floatText(def, 'BLOCKED!', '#9cd4ff', 44); sfx('block'); hitSpark(def.x + toAtt * 0.3, hp.y + 0.15, toAtt, 3, 0); return; }
+  if (blocking) { dmg = Math.max(1, Math.round(dmg * (opts.dom ? 0.4 : 0.2))); if (!opts.super) att.stam = Math.max(0, (att.stam ?? 100) - 24); def.vx = -toAtt * 1.5; hitSpark(def.x + toAtt * 0.3, clamp(contactPoint(att, def, hp, toAtt, opts).y, def.y + 0.9, def.y + 1.55), toAtt, 3, 0); game.hitstop = 0.05; sfx('block'); }
   else {
     const counter = !opts.super && def.state === 'atk' && def.move && def.t < def.move.b;           // caught them mid-swing
     const rage = att.hp <= LOWHP && att.hp > 0;                                                       // last-stand: hits harder
-    const crit = opts.launch || (!opts.super && !opts.grab && (att.critNext || Math.random() < (counter ? 0.45 : 0.13)));
-    att.critNext = false;
+    const crit = opts.launch || (!opts.super && !opts.grab && (att.critNext || Math.random() < (counter ? 0.4 : 0.03)));   // criticals are earned (a parry, a counter), hardly ever luck
+    fromParry = crit && !!att.parryNext; if (!opts.super) { att.critNext = false; att.parryNext = false; }
     if (game.wev && game.wev.kind === 'crunch') dmg = Math.round(dmg * 2);
     if (game.dom && game.dom.f === att && !opts.super) dmg = Math.round(dmg * 1.25);          // in your own domain you hit harder
     if (counter) dmg = Math.round(dmg * 1.3); if (rage) dmg = Math.round(dmg * 1.2); if (crit && !opts.launch) dmg = Math.round(dmg * 1.6);
     const heavy = dmg >= 9, pop = att.moveName === 'upper' && att.state === 'atk';
     if (crit || pop || opts.knockdown || opts.grab) {                                               // off their feet: fly, tumble, bounce
-      def.state = 'down'; def.t = 0; def.chain = ''; def.air = 1; def.bounced = 0;
-      def.vx = -toAtt * (crit ? 6.4 : pop ? 1.6 : kb * 1.3); def.vy = crit ? 6.0 : pop ? 7.2 : opts.grab ? 5.2 : 3.4;
+      def.state = 'down'; def.t = 0; def.chain = ''; def.air = 1; def.bounced = 0; def.juggle = 0;
+      def.vx = -toAtt * (crit ? 4.6 : pop ? 1.6 : kb * 1.3); def.vy = crit ? 6.0 : pop ? 7.2 : opts.grab ? 5.2 : 3.4;
     }
     else if (def.state !== 'super') { def.state = 'hit'; def.t = 0; def.stun = heavy ? 0.36 : 0.26; def.vx = -toAtt * kb * (heavy ? 1.5 : 1); if (heavy) skid(def); }
     def.flash = 0.12; const cp = contactPoint(att, def, hp, toAtt, opts); def.hitHi = cp.y > 1.12 ? 1 : 0; def.hitTw = Math.random() < 0.5 ? 1 : -1;
@@ -1216,7 +1240,7 @@ function hit(att, def, dmg, kb, opts = {}) {
     if (Math.random() < 0.07 && def.bubbleT <= 0) say(def, pick(def.c.lines.hit));
   }
   def.hp = Math.max(0, def.hp - dmg);
-  if (def.hp <= 0 && def.key === 'himanshu' && att.key !== 'himanshu') {            // bhaiya never loses: he gets back up, every time
+  if (def.hp <= 0 && def.key === 'himanshu' && att.key !== 'himanshu' && !fromParry && !(game.dom && game.dom.f === att)) {            // bhaiya gets back up, every time, unless the last blow came off a parry or inside the other fighter's domain
     def.hp = Math.round(MAXHP * 0.45); def.state = 'idle'; def.t = 0; def.air = 0; def.y = 0; def.vy = 0; def.vx = 0; def.invT = 1.3; def.meter = Math.min(100, def.meter + 35);
     att.state = 'hit'; att.t = 0; att.stun = 0.5; att.vx = toAtt * 6.5; reviveFX(def); return;
   }
@@ -1315,10 +1339,10 @@ function starTex() {                                    // a jagged burst: long 
 function streakTex() {                                  // one thrown spark: bright head, long tapering tail
   return _streakTex || (_streakTex = canvasTex(128, 16, g => { const r = g.createLinearGradient(0, 0, 128, 0); r.addColorStop(0, 'rgba(255,255,255,0)'); r.addColorStop(0.75, 'rgba(255,255,255,0.85)'); r.addColorStop(1, '#ffffff'); g.fillStyle = r; g.beginPath(); g.moveTo(0, 8); g.lineTo(118, 2); g.quadraticCurveTo(128, 8, 118, 14); g.closePath(); g.fill(); }));
 }
-const HITCOL = [['#ffd27a', '#ff8a1f'], ['#fff0a8', '#ff7a18'], ['#ff8f8f', '#ff1f33'], ['#bfe6ff', '#3aa8ff']];
+const HITCOL = [['#ffd27a', '#ff8a1f'], ['#fff0a8', '#ff7a18'], ['#ff8f8f', '#ff1f33'], ['#bfe6ff', '#3aa8ff'], ['#f2fdff', '#5fd0ff']];
 function hitSpark(x, y, dir, lvl, up) {                  // dir: the way the blow travels (+1 right, -1 left); level 3 = a blocked hit
   if (netGate(['hs', x, y, dir, lvl, up])) return;
-  const [c1, c2] = HITCOL[lvl], blk = lvl === 3; if (blk) lvl = 0;
+  const [c1, c2] = HITCOL[lvl], blk = lvl === 3, par = lvl === 4; if (blk) lvl = 0; if (par) lvl = 1;
   const sz = lvl === 2 ? 1.3 : lvl ? 0.95 : 0.62, P = new THREE.Vector3(x, y, 0.55), Z = new THREE.Vector3();
   const spr = (map, col, rot) => { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map, color: col, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, rotation: rot })); m.renderOrder = 30; return m; };
   const r0 = Math.random() * 6.28;
@@ -1335,7 +1359,7 @@ function hitSpark(x, y, dir, lvl, up) {                  // dir: the way the blo
   const ring = (col, r, life, grow) => { const q = new THREE.Mesh(new THREE.RingGeometry(r * 0.93, r, 48), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending })); q.renderOrder = 29; if (up) q.rotation.x = -1.2; else q.rotation.y = dir * 1.12; PFX(q, P, new THREE.Vector3(up ? 0 : dir * 1.5, up ? 1.5 : 0, 0), life, { grow }); };
   if (lvl) ring('#ffffff', 0.16, 0.14, lvl === 2 ? 14 : 10); if (lvl === 2) ring(c2, 0.1, 0.22, 12);                            // shock ring seen edge-on
   if (lvl === 2) { m = spr(streakTex(), '#ffffff', Math.PI / 2 + (Math.random() - 0.5) * 0.5); m.scale.set(5, 0.06, 1); PFX(m, P, Z, 0.1, {}); m = spr(streakTex(), c2, (Math.random() - 0.5) * 0.5); m.scale.set(5, 0.05, 1); PFX(m, P, Z, 0.12, {}); }
-  hitLight.position.set(x - dir * 0.15, y, 1.1); hitLight.color.set(blk ? '#6ab8ff' : lvl === 2 ? '#ff5a4a' : '#ffc070'); hitLight.intensity = lvl === 2 ? 20 : lvl ? 12 : 7;
+  hitLight.position.set(x - dir * 0.15, y, 1.1); hitLight.color.set((blk || par) ? '#6ab8ff' : lvl === 2 ? '#ff5a4a' : '#ffc070'); hitLight.intensity = lvl === 2 ? 20 : lvl ? 12 : 7;
   if (blk) { const q = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.25, 6), new THREE.MeshBasicMaterial({ color: '#8fd4ff', transparent: true, opacity: 0.9, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthTest: false })); q.renderOrder = 29; q.rotation.y = dir * 1.0; PFX(q, P, Z, 0.13, { grow: 3 }); return; }
   game.zoomK = Math.max(game.zoomK || 0, lvl === 2 ? 1 : lvl ? 0.55 : 0.22); game.punchX = dir * (lvl === 2 ? 0.22 : lvl ? 0.12 : 0.05);
 }
@@ -1430,7 +1454,8 @@ function stepFX(vis) {
 }
 
 // ---------------------------------------------------------------- CPU
-const AI = { easy: { blk: .12, sup: .25, react: 0.4 }, normal: { blk: .35, sup: .5, react: 0.22 }, hard: { blk: .6, sup: .85, react: 0.12 } };
+const AI = { easy: { blk: .12, sup: .25, react: 0.4, par: .03 }, normal: { blk: .35, sup: .5, react: 0.22, par: .09 }, hard: { blk: .6, sup: .85, react: 0.12, par: .2 } };
+const PARRY_WIN = 0.15;      // seconds after starting a block in which a hit is deflected instead of blocked
 function cpuInput(f, o) {
   if (window.__cpuOff) return {};
   const D = AI[diff], inp = {}, dx = o.x - f.x, ad = Math.abs(dx);
@@ -1812,10 +1837,11 @@ function domainEnd(G, quiet) {
 function domainHit(d, dmg, last) {                                  // the summon lands: always hits, the last one sends them flying
   const { f, o } = d; if (net && net.role === 'guest') return;
   if (o.state === 'domheld') { o.state = 'idle'; o.y = 0; }
-  hit(f, o, dmg, last ? 5 : 1.4, { super: true, launch: last });          // the domain's own strike: it lands unless they are blocking or already down
+  hit(f, o, dmg, last ? 5 : 1.4, { super: true, launch: last, dom: true });          // the domain's own strike: it lands unless they are blocking or already down
 }
 function domainStep(G) {
   const d = G.dom, { f, o } = d, D = DOMAIN[d.key], host = !(net && net.role === 'guest');
+  if (d.breakNow) { const own = d.f; domainEnd(G); if (host) { own.state = 'hit'; own.t = 0; own.stun = 0.9; own.hitHi = 1; own.vx = -own.facing * 2.5; floatText(own, 'DOMAIN BROKEN', '#ffffff', 30); G.shake = 0.4; flash(0.3); sfx('thud'); } return false; }   // three strikes parried: the domain shatters early
   const cin = d.t < (D.dark ? 2.75 : 1.6) + 0.5;                    // the opening is a cutscene; after it the fight runs inside the domain
   d.t += DT;
   if (cin) { f.t += DT; o.t += DT; f.anim = (f.anim || 0) + 1; o.anim = (o.anim || 0) + 1; [f, o].forEach(x => { x.hpShow = lerp(x.hpShow, x.hp, 0.06); if (x.flash > 0) x.flash -= DT; if (x.bubbleT > 0) x.bubbleT -= DT; }); }
@@ -1906,6 +1932,7 @@ function domainStep(G) {
   }
   if (d.wall) { const k = smooth(clamp((t - 1.0) / 0.9, 0, 1)); { const wk = k * ((d.shrine || d.maho) ? 1.55 : 1); d.wall.scale.set(wk, 1, wk); d.floor.scale.setScalar(wk); } d.floor.material.uniforms.uT.value = t; d.rings.forEach((r, i) => { r.scale.setScalar(k); r.rotation.z = t * (i % 2 ? 0.4 : -0.3); }); d.wall.material.map.offset.x = t * (d.key === 'charan' ? 0.12 : 0.02); }
   const uOff = D.dark ? 2.75 : 1.6, u = t - uOff, HT = [1.6, 3.9, 6.2, 8.5, 10.6], LAST = HT.length - 1, S = d.sum, dir = Math.sign(o.x - f.x) || 1;
+  d.soon = HT.some(h => u > h - 0.6 && u < h + 0.03);                    // a strike is on its way: the target may block (and parry) it
   if (d.slash) {
     slashStep(d.slash);
   }
@@ -2099,6 +2126,7 @@ function updateHUD() {
     if (f._hpPrev !== undefined && f.hp < f._hpPrev - 0.5) { bar.classList.remove('hitk'); void bar.offsetWidth; bar.classList.add('hitk'); $('pf' + i).classList.remove('hitk'); void $('pf' + i).offsetWidth; $('pf' + i).classList.add('hitk'); }
     f._hpPrev = f.hp;
     $('mb' + i).style.width = f.meter + '%'; $('mt' + i).classList.toggle('full', f.meter >= 100);
+    { const sv = Math.max(0, f.stam ?? 100); $('sb' + i).style.width = sv + '%'; $('st' + i).classList.toggle('low', sv < 26); }
     $('rd' + i).textContent = f.meter >= 100 ? ((f.cpu || COARSE) ? 'SUPER READY' : 'SUPER (L)' + (f.domUsed ? '' : '  ·  DOMAIN (O)')) : '';
     if (G.dom && G.dom.f === f) $('rd' + i).textContent = 'DOMAIN  ' + Math.max(0, Math.ceil((G.dom.key === 'himanshu' ? 2.75 : 1.6) + 10.6 + 0.75 - G.dom.t)) + 's';
     $('dm' + i).className = 'dm' + (f.domUsed ? ' used' : f.meter >= 100 ? ' on' : '');
@@ -2217,7 +2245,7 @@ $('tickText').textContent = TICKER.join('      ●      ');
 
 // ================================================================== online: play with a friend (PeerJS room code; the host runs the fight)
 let net = null;
-const SNAP = ['x', 'y', 'vx', 'vy', 'facing', 'hp', 'meter', 'state', 't', 'moveName', 'chain', 'stun', 'flash', 'tauntCd', 'crouchBlock', 'anim', 'hits', 'air', 'domUsed', 'inDom'];
+const SNAP = ['x', 'y', 'vx', 'vy', 'facing', 'hp', 'meter', 'state', 't', 'moveName', 'chain', 'stun', 'flash', 'tauntCd', 'crouchBlock', 'anim', 'hits', 'air', 'domUsed', 'inDom', 'stam'];
 function netGate(ev) {            // true = do not run locally
   if (!net || !game) return false;
   if (net.role === 'guest') return !net.replay;
