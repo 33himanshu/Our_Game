@@ -258,14 +258,14 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 </div>
 <div id="rot"><div>↻</div>Turn your phone sideways to play</div>
 
-<script src="models/xbot.js?v=1795697217"></script>
+<script src="models/xbot.js?v=1795698459"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <div id="speed" style="position:fixed;inset:0;pointer-events:none;opacity:0;z-index:6;background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0) 0deg 5deg, rgba(255,255,255,.55) 5deg 6deg);-webkit-mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%);mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%)"></div>
-<script src="mocap.js?v=1795697217"></script>
-<script src="anim.js?v=1795697217"></script>
-<script src="faces.js?v=1795697217"></script>
-<script src="faces_real.js?v=1795697217"></script>
-<script src="models/bodies.js?v=1795697217"></script>
+<script src="mocap.js?v=1795698459"></script>
+<script src="anim.js?v=1795698459"></script>
+<script src="faces.js?v=1795698459"></script>
+<script src="faces_real.js?v=1795698459"></script>
+<script src="models/bodies.js?v=1795698459"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -2580,22 +2580,31 @@ function remoteInput() {
   r.up = r.punch = r.kick = r.grab = r.super = r.taunt = r.domain = r.ult = false; return inp;
 }
 function sendSnap() {
-  const G = game, f = x => { const o = {}; SNAP.forEach(k => o[k] = x[k]); return o; };
-  netSend({ t: 's', g: { phase: G.phase, t: G.t, time: G.time, round: G.round, wins: G.wins, roundLabel: G.roundLabel, rule: G.rule || '', matchOver: !!G.matchOver, shake: G.shake, w: G.winner ? (G.winner === G.p1 ? 0 : 1) : null }, f: [f(G.p1), f(G.p2)], ev: net.ev });
+  const G = game, now = performance.now(), urgent = net.ev.length > 0;
+  if (now - (net.sentT || 0) < (urgent ? 33 : 50)) return;                            // 20 a second, 30 when there are effects to pass on
+  if (net.conn.buffered && net.conn.buffered() > 8000 && now - (net.sentT || 0) < 250) return;   // the line is backed up: skip rather than queue, so delay cannot pile up
+  net.sentT = now; const r = v => typeof v === 'number' ? Math.round(v * 1000) / 1000 : v, f = x => { const o = {}; SNAP.forEach(k => o[k] = r(x[k])); return o; };
+  netSend({ t: 's', n: (net.sn = (net.sn || 0) + 1), g: { phase: G.phase, t: r(G.t), time: G.time, round: G.round, wins: G.wins, roundLabel: G.roundLabel, rule: G.rule || '', matchOver: !!G.matchOver, shake: r(G.shake), w: G.winner ? (G.winner === G.p1 ? 0 : 1) : null }, f: [f(G.p1), f(G.p2)], ev: net.ev });
   net.ev = [];
 }
 function guestStep() {
-  const G = game, inp = playerInput(); pressed.clear(); netSend({ t: 'in', i: inp });
+  const G = game, inp = playerInput(), now = performance.now(); pressed.clear();
+  { const sig = (inp.left ? 1 : 0) + (inp.right ? 2 : 0) + (inp.down ? 4 : 0), edge = inp.up || inp.punch || inp.kick || inp.grab || inp.super || inp.taunt || inp.domain || inp.ult; if (edge || sig !== net.inSig || now - (net.inT || 0) > 120) { netSend({ t: 'in', i: inp }); net.inSig = sig; net.inT = now; } }
   if (G.ult) ultStep(G);
   if (G.dom) domainStep(G);
   if (G.wev) worldStep(G);
   const s = net.last;
-  if (s) {
-    if (s.g.round !== G.round) { clearFX(); [G.p1, G.p2].forEach(f => { f.tilt.rotation.set(0, 0, 0); f.tilt.position.set(0, 0, 0); }); }
+  if (s && net.fresh) {                                                              // a new state has arrived
+    net.fresh = false; net.gap = lerp(net.gap || 50, clamp(now - (net.snapT || now - 50), 30, 150), 0.25); net.snapT = now;
+    if (s.g.round !== G.round) { clearFX(); [G.p1, G.p2].forEach(f => { f.tilt.rotation.set(0, 0, 0); f.tilt.position.set(0, 0, 0); f.it = undefined; }); }
     Object.assign(G, { phase: s.g.phase, t: s.g.t, time: s.g.time, round: s.g.round, wins: s.g.wins, roundLabel: s.g.roundLabel, rule: s.g.rule || null, matchOver: s.g.matchOver, shake: s.g.shake });
     G.winner = s.g.w === null ? null : [G.p1, G.p2][s.g.w];
-    [G.p1, G.p2].forEach((f, i) => { const o = s.f[i], was = f.state; SNAP.forEach(k => f[k] = o[k]); f.move = o.moveName ? MOVES[o.moveName] : null; if (f.state === 'super' && was !== 'super') f.fired = {}; });
+    [G.p1, G.p2].forEach((f, i) => { const o = s.f[i], was = f.state, wasMv = f.moveName, lt = f.t, la = f.anim, x0 = f.x, y0 = f.y; SNAP.forEach(k => f[k] = o[k]); f.move = o.moveName ? MOVES[o.moveName] : null; if (f.state === 'super' && was !== 'super') f.fired = {};
+      if (f.state === was && f.moveName === wasMv && lt !== undefined && Math.abs(o.t - lt) < 0.2) f.t = lt; if (la !== undefined && f.it !== undefined) f.anim = la;      // same move as before: keep our own smooth clock
+      const jump = f.it === undefined || Math.abs(o.x - x0) > 1.6 || Math.abs(o.y - y0) > 1.6; f.ix1 = o.x; f.iy1 = o.y; f.ivx = o.vx || 0; f.ivy = o.vy || 0; f.it = now; f.x = jump ? o.x : x0; f.y = jump ? o.y : y0; });
   }
+  if (s) { const frozen = G.hitstop > 0 || s.g.phase === 'ko' && false; [G.p1, G.p2].forEach(f => { if (f.it === undefined) return; const age = Math.min(0.26, (now - f.it) / 1000), still = ['ko', 'domain', 'domheld', 'block'].includes(f.state);     // between arrivals: carry on at the speed last reported, and ease toward where that puts him
+      const tx = clamp(f.ix1 + (still ? 0 : f.ivx * age), -ARENA_X, ARENA_X), ty = Math.max(0, f.iy1 + (f.iy1 > 0 || f.ivy > 0 ? f.ivy * age - 0.5 * GRAV * age * age : 0)); f.x = lerp(f.x, tx, 0.4); f.y = lerp(f.y, ty, 0.5); if (ty <= 0 && f.y < 0.01) f.y = 0; f.t += DT; f.anim = (f.anim || 0) + 1; }); G.t += DT; }
   net.replay = true;
   for (const e of net.evq.splice(0)) {
     const who = i => [G.p1, G.p2][i];
@@ -2610,14 +2619,14 @@ function guestStep() {
 function netStatus(t) { $('netStatus').textContent = t; $('netMsg').textContent = t; }
 function netOnData(m) {
   if (m.t === 'in' && net.role === 'host') { const r = net.remote, i = m.i; r.left = !!i.left; r.right = !!i.right; r.down = !!i.down; ['up', 'punch', 'kick', 'grab', 'super', 'taunt', 'domain', 'ult'].forEach(k => { if (i[k]) r[k] = true; }); }
-  else if (m.t === 's' && game) { net.last = m; net.evq.push(...m.ev); }
+  else if (m.t === 's' && game) { net.evq.push(...m.ev); if (m.n === undefined || !(m.n < (net.gotN || 0)) || m.n < 5) { net.gotN = m.n || 0; net.last = m; net.fresh = true; } }   // effects always count; an older state arriving late is ignored
   else if (m.t === 'pick') { sel[m.side] = m.k; if (!game) { refreshCards(); refreshPreview(); } }
   else if (m.t === 'start') { sel.p1 = m.p1; sel.p2 = m.p2; previews.forEach(p => p.dispose()); previews = []; net.last = null; net.evq = []; startFight(); }
   else if (m.t === 'again' && net.role === 'host') $('rematch').click();
   else if (m.t === 'menu') { toMenu(); refreshPreview(); }
 }
 function netReady(role, conn) {
-  net.conn = conn; net.remote = {}; net.ev = []; net.evq = []; net.last = null;
+  net.conn = conn; net.remote = {}; net.ev = []; net.evq = []; net.last = null; net.gotN = 0; net.sn = 0; net.fresh = false; net.sentT = 0;
   conn.on('data', netOnData);
   conn.on('close', () => { net = null; if (game) toMenu(); refreshCards(); refreshPreview(); netStatus('Your friend left the room.'); $('fightBtn').textContent = 'FIGHT!'; });
   $('netPanel').classList.add('hidden');
@@ -2630,11 +2639,11 @@ function netReady(role, conn) {
 const RELAY_HTTP = location.port === '8777' ? 'http://127.0.0.1:8788' : location.origin;
 function relayConn(code, role, onReady, onOpen, onNoRoom, onFail) {
   let ws; try { ws = new WebSocket(RELAY_HTTP.replace(/^http/, 'ws') + '/ws?room=' + code + '&role=' + role); } catch (e) { onFail(); return null; }
-  const h = {}, c = { open: false, relay: true, send: o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); }, on: (ev, fn) => { (h[ev] = h[ev] || []).push(fn); }, close: () => ws.close() };
+  const h = {}, c = { open: false, relay: true, buffered: () => ws.bufferedAmount || 0, send: o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); }, on: (ev, fn) => { (h[ev] = h[ev] || []).push(fn); }, close: () => ws.close() };
   let ready = false;
   ws.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (x) { return; }
     if (m.t === '_ready') { ready = true; onReady && onReady(c); } else if (m.t === '_open') { c.open = true; onOpen(c); } else if (m.t === '_noroom') { ready = true; onNoRoom && onNoRoom(); }
-    else if (m.t === '_close') { c.open = false; (h.close || []).forEach(f => f()); } else (h.data || []).forEach(f => f(m)); };
+    else if (m.t === '_close') { c.open = false; (h.close || []).forEach(f => f()); } else if (window.__lag) setTimeout(() => (h.data || []).forEach(f => f(m)), window.__lag()); else (h.data || []).forEach(f => f(m)); };
   ws.onclose = () => { if (!ready) onFail(); else if (c.open) { c.open = false; (h.close || []).forEach(f => f()); } };
   ws.onerror = () => {};
   return c;
