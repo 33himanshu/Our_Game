@@ -57,3 +57,18 @@ The animation clips come from Quaternius' Universal Animation Library (public do
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). In short: make a branch, open a pull request, and Himanshu reviews it before it goes in.
+
+## Added on 26 November
+
+| Action | Keyboard | Phone |
+|---|---|---|
+| Ultimate (full bar, once a match) | U | ULT |
+| Domain | O | DOMAIN |
+| Parry | Tap back just before a hit lands | Flick the stick back |
+| Full screen | F | The ⛶ button |
+
+- **Ultimates.** Aman's *Eightfold Cosine* is Aman's own idea and design: copies of him close a ring round the opponent, fire in turn, then all at once, and a knockout shatters the loser into glowing pieces. Himanshu's *Bhaiya Stampede* and Charan's *Galti Cascade* are built in the same shape.
+- **After the match** (from Aman's pull request): the fighter nobody picked walks in beside the winner and has a word for the loser while the crowd cheers. If Charan wins he slips on a cup of chai; if he loses he walks to the corner, kneels and cries. Press Enter to skip.
+- **Betting.** Play money called chai points, kept on your device. Bet on yourself, or switch on WATCH & BET and let the computer fight for your pick. Harder opponents pay more. Nothing here is real money.
+- **Speed readout.** Add `?fps` to the address, or tap the round clock three times.
+- Himanshu still heals and gets back up. He stays down only to a parry critical or inside the other fighter's domain.
