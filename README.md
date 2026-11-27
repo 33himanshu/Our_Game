@@ -84,3 +84,9 @@ On the menu, **WALK THE OFFICE** drops your fighter into the office at 3 AM. Mov
 - **The practice dummy:** an opponent who does not fight back and cannot be knocked out, with the moves listed on screen.
 - **The arcade cabinet:** two computer fighters go at it while you bet 50.
 - **The lead's cabin** is locked until you have beaten both teammates. Inside is Final QC: the hardest opponent, who takes a quarter less damage. Winning pays 300.
+
+## Three places to fight
+
+A match now moves: round one in the office, round two on the rooftop at night, round three in the ring, then round again. The place and the round's rule show under the clock.
+
+**Wall break.** Launch someone hard into the edge of the arena and the wall gives way: the fight crashes through into the next place, once a round. It does a little extra damage.

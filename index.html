@@ -263,14 +263,14 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 </div>
 <div id="rot"><div>↻</div>Turn your phone sideways to play</div>
 
-<script src="models/xbot.js?v=1795764211"></script>
+<script src="models/xbot.js?v=1795765117"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <div id="speed" style="position:fixed;inset:0;pointer-events:none;opacity:0;z-index:6;background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0) 0deg 5deg, rgba(255,255,255,.55) 5deg 6deg);-webkit-mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%);mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%)"></div>
-<script src="mocap.js?v=1795764211"></script>
-<script src="anim.js?v=1795764211"></script>
-<script src="faces.js?v=1795764211"></script>
-<script src="faces_real.js?v=1795764211"></script>
-<script src="models/bodies.js?v=1795764211"></script>
+<script src="mocap.js?v=1795765117"></script>
+<script src="anim.js?v=1795765117"></script>
+<script src="faces.js?v=1795765117"></script>
+<script src="faces_real.js?v=1795765117"></script>
+<script src="models/bodies.js?v=1795765117"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -530,6 +530,47 @@ const dstage = new THREE.Group(); scene.add(dstage);
   const emb = new THREE.Points(eg, new THREE.PointsMaterial({ color: '#ff5a4a', size: 0.06, map: glowTexLazy(), transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false })); dstage.add(emb); dstage.userData.emb = emb;
 }
 const STAGE = DARKSTAGE ? dstage : arena;
+// ---------------------------------------------------------------- more places to fight: the match moves from the office to the rooftop to the ring
+const STAGES = [STAGE], STAGE_NAMES = ['THE OFFICE', 'THE ROOFTOP', 'THE RING']; let stageI = 0;
+function stageShow(on) { STAGES.forEach((g, i) => { g.visible = !!on && i === stageI; }); }
+function setStage(i) { stageI = ((i % STAGES.length) + STAGES.length) % STAGES.length; stageShow(!(game && game.dom && game.dom.hidArena)); }
+{
+  const SM = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, metalness: 0.05, ...o }), BM = (c, o = {}) => new THREE.MeshBasicMaterial({ color: c, ...o });
+  const mk = g => (w, h, d, mat, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; g.add(m); return m; };
+  const glow = (col, size) => { const t = canvasTex(64, 64, c => { const r = c.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, '#ffffff'); r.addColorStop(0.3, col); r.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = r; c.fillRect(0, 0, 64, 64); }); const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); s.scale.setScalar(size); return s; };
+  const windows = (w, h, lit, warm) => canvasTex(w, h, c => { c.fillStyle = '#070b1c'; c.fillRect(0, 0, w, h); for (let y = 6; y < h - 4; y += 9) for (let x = 5; x < w - 4; x += 8) if (Math.random() < lit) { c.fillStyle = Math.random() < warm ? '#ffd98a' : '#8fd0ff'; c.globalAlpha = 0.5 + Math.random() * 0.5; c.fillRect(x, y, 4, 5); } c.globalAlpha = 1; });
+  // ---- the rooftop, at night
+  const roof = new THREE.Group(); roof.visible = false; scene.add(roof); STAGES.push(roof); const rb = mk(roof);
+  const conc = canvasTex(512, 256, c => { c.fillStyle = '#2b2f3d'; c.fillRect(0, 0, 512, 256); for (let i = 0; i < 2600; i++) { c.fillStyle = 'rgba(' + (Math.random() < 0.5 ? '255,255,255' : '0,0,0') + ',' + (Math.random() * 0.05) + ')'; c.fillRect(Math.random() * 512, Math.random() * 256, 1 + Math.random() * 3, 1 + Math.random() * 3); } c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 2; for (let x = 0; x <= 512; x += 128) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, 256); c.stroke(); } c.strokeStyle = '#d9b23a'; c.lineWidth = 6; c.setLineDash([22, 16]); c.strokeRect(40, 150, 432, 96); c.setLineDash([]); c.strokeStyle = 'rgba(255,255,255,.5)'; c.lineWidth = 5; c.beginPath(); c.arc(256, 198, 40, 0, 6.3); c.stroke(); });
+  { const fl = new THREE.Mesh(new THREE.PlaneGeometry(30, 15), SM('#ffffff', { map: conc, roughness: 0.92 })); fl.rotation.x = -Math.PI / 2; fl.position.set(0, 0, -1.5); fl.receiveShadow = true; roof.add(fl); }
+  { const pud = new THREE.Mesh(new THREE.PlaneGeometry(10.6, 4.3), waterMat({ floor: '#0a0d1c', line: '#6f8cff', wo: 0.3 })); pud.rotation.x = -Math.PI / 2; pud.position.y = 0.006; pud.material.uniforms.uG.value = 0.6; roof.add(pud); roof.userData.pud = pud; }
+  rb(30, 0.75, 0.35, SM('#3a3f52'), 0, 0.375, -3.4); rb(30, 0.08, 0.5, SM('#4b5168'), 0, 0.78, -3.4);                                    // the parapet
+  [[-7.6, 1.5, -2.2], [-5.2, 1.1, -2.5], [7.9, 1.3, -2.3]].forEach(([x, w, z], i) => { rb(w, 0.9, 1.0, SM('#59607a', { metalness: 0.4, roughness: 0.5 }), x, 0.45, z); const fan = new THREE.Mesh(new THREE.CircleGeometry(0.3, 20), BM('#11131f')); fan.position.set(x, 0.5, z + 0.51); roof.add(fan); });      // air-conditioning units
+  { const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.6, 20), SM('#6a4a35')); tank.position.set(-10.5, 2.3, -2.4); tank.castShadow = true; roof.add(tank); [[-0.6, -0.6], [0.6, -0.6], [-0.6, 0.6], [0.6, 0.6]].forEach(([a, b]) => rb(0.1, 1.5, 0.1, SM('#22252f'), -10.5 + a, 0.75, -2.4 + b)); }
+  { rb(0.08, 4.4, 0.08, SM('#22252f'), 10.2, 2.2, -2.6); rb(1.2, 0.05, 0.05, SM('#22252f'), 10.2, 3.6, -2.6); const red = glow('#ff2a2a', 0.5); red.position.set(10.2, 4.45, -2.6); roof.add(red); roof.userData.beacon = red; }
+  { const sign = canvasTex(512, 160, c => { c.clearRect(0, 0, 512, 160); c.font = '700 96px Oswald, Impact, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.shadowColor = '#ff3fc4'; c.shadowBlur = 26; c.fillStyle = '#ffd6f3'; c.fillText('QC SHOWDOWN', 256, 84); c.shadowColor = '#5fd0ff'; c.shadowBlur = 12; c.strokeStyle = '#5fd0ff'; c.lineWidth = 2; c.strokeText('QC SHOWDOWN', 256, 84); }); const sg = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 2), new THREE.MeshBasicMaterial({ map: sign, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); sg.scale.setScalar(0.72); sg.position.set(-4.6, 2.35, -3.9); roof.add(sg); roof.userData.sign = sg; rb(0.1, 1.7, 0.1, SM('#22252f'), -6.7, 1.45, -3.95); rb(0.1, 1.7, 0.1, SM('#22252f'), -2.5, 1.45, -3.95); }
+  [[-13, 9, -9, 4.5], [-8, 13, -12, 4], [-3, 8, -10, 3.6], [2, 15, -13, 4.4], [7, 10, -10, 3.8], [12, 12, -12, 4.6], [-17, 11, -13, 4], [17, 9, -11, 4]].forEach(([x, h, z, w]) => { const t = windows(64, 128, 0.42, 0.75); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(w / 3, h / 6); const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, 3), new THREE.MeshBasicMaterial({ map: t, fog: true })); b.position.set(x, h / 2 - 5, z); roof.add(b); });      // the city below and around
+  { const far = canvasTex(1024, 256, c => { const gr = c.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#04061a'); gr.addColorStop(0.7, '#101a44'); gr.addColorStop(1, '#27224f'); c.fillStyle = gr; c.fillRect(0, 0, 1024, 256); for (let i = 0; i < 220; i++) { c.fillStyle = 'rgba(255,255,255,' + (0.2 + Math.random() * 0.7) + ')'; c.fillRect(Math.random() * 1024, Math.random() * 150, 1.4, 1.4); } for (let x = 0; x < 1024; x += 9 + Math.random() * 14) { const h = 20 + Math.random() * 70; c.fillStyle = '#080c20'; c.fillRect(x, 256 - h, 12, h); for (let k = 0; k < h / 6; k++) if (Math.random() < 0.4) { c.fillStyle = Math.random() < 0.8 ? '#ffd98a' : '#8fd0ff'; c.fillRect(x + 2 + Math.random() * 6, 256 - h + 2 + k * 6, 2, 2.5); } } });
+    const sky = new THREE.Mesh(new THREE.CylinderGeometry(30, 30, 26, 48, 1, true), new THREE.MeshBasicMaterial({ map: far, side: THREE.BackSide, fog: false })); sky.position.set(0, 7, 0); sky.renderOrder = -6; roof.add(sky); const moon = glow('#cfe0ff', 5); moon.position.set(-9, 11, -26); roof.add(moon); }
+  // ---- the ring
+  const ring = new THREE.Group(); ring.visible = false; scene.add(ring); STAGES.push(ring); const gb = mk(ring);
+  { const dark = new THREE.Mesh(new THREE.CircleGeometry(34, 48), SM('#07080f', { roughness: 1 })); dark.rotation.x = -Math.PI / 2; dark.position.y = -0.55; ring.add(dark); }
+  gb(11.8, 0.55, 6.4, SM('#16245a'), 0, -0.285, 0); gb(11.9, 0.1, 6.5, SM('#8f98b3'), 0, -0.04, 0);
+  { const mat = canvasTex(512, 256, c => { c.fillStyle = '#6f7c9e'; c.fillRect(0, 0, 512, 256); for (let i = 0; i < 1500; i++) { c.fillStyle = 'rgba(0,0,0,' + (Math.random() * 0.04) + ')'; c.fillRect(Math.random() * 512, Math.random() * 256, 2, 2); } c.strokeStyle = '#c0392b'; c.lineWidth = 8; c.beginPath(); c.arc(256, 128, 86, 0, 6.3); c.stroke(); c.fillStyle = '#16245a'; c.font = '700 84px Oswald, Impact, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('QC', 256, 134); c.strokeStyle = 'rgba(22,36,90,.5)'; c.lineWidth = 4; c.strokeRect(14, 14, 484, 228); }); const cv = new THREE.Mesh(new THREE.PlaneGeometry(11.6, 6.2), SM('#b9c0d4', { map: mat, roughness: 1 })); cv.rotation.x = -Math.PI / 2; cv.position.y = 0.012; cv.receiveShadow = true; ring.add(cv); }
+  [[-5.6, -2.9, '#c0392b'], [5.6, -2.9, '#2a5fd0'], [-5.6, 2.9, '#e9edf7'], [5.6, 2.9, '#e9edf7']].forEach(([x, z, col]) => { const p2 = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 1.55, 14), SM('#22252f', { metalness: 0.5 })); p2.position.set(x, 0.775, z); p2.castShadow = true; ring.add(p2); gb(0.34, 1.0, 0.34, SM(col), x, 0.95, z); });
+  [0.5, 0.85, 1.2].forEach((y, i) => { const col = i === 1 ? '#c0392b' : '#f1f3fa', rope = (len, x, z, ry) => { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, len, 8), SM(col)); r.rotation.z = Math.PI / 2; r.rotation.y = ry; r.position.set(x, y, z); ring.add(r); }; rope(11.2, 0, -2.9, 0); rope(5.8, -5.6, 0, Math.PI / 2); rope(5.8, 5.6, 0, Math.PI / 2); });       // ropes at the back and the sides; the near side is left open so nothing crosses the fight
+  { const N = 150, cm = new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.22, 0.5, 3, 6), new THREE.MeshBasicMaterial({ color: '#ffffff' }), N), m = new THREE.Matrix4(); for (let i = 0; i < N; i++) { const row = Math.floor(i / 30), k = i % 30; m.makeTranslation(-16 + k * 1.1 + (row % 2) * 0.5, -0.1 + row * 0.5, -6 - row * 0.9); cm.setMatrixAt(i, m); cm.setColorAt(i, new THREE.Color().setHSL(0.62 + Math.random() * 0.1, 0.3, 0.035 + Math.random() * 0.045)); } ring.add(cm); for (let r = 0; r < 5; r++) gb(36, 0.45, 0.9, SM('#0b0d18'), 0, -0.6 + r * 0.5, -6 - r * 0.9); }
+  gb(13, 0.25, 0.25, SM('#1a1d2b', { metalness: 0.6 }), 0, 6.3, -1); gb(0.25, 0.25, 7, SM('#1a1d2b', { metalness: 0.6 }), -5, 6.3, 0); gb(0.25, 0.25, 7, SM('#1a1d2b', { metalness: 0.6 }), 5, 6.3, 0);
+  [[-3.4, '#fff3dc'], [0, '#ffffff'], [3.4, '#dfe8ff']].forEach(([x, col]) => { const lamp = glow(col, 1.3); lamp.position.set(x, 6.1, -1); ring.add(lamp); const cone = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 2.3, 6.2, 28, 1, true), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false })); cone.position.set(x, 3.05, -0.6); ring.add(cone); });
+  { const bn = canvasTex(1024, 128, c => { c.fillStyle = '#0d1022'; c.fillRect(0, 0, 1024, 128); c.fillStyle = '#ffc24a'; c.font = '700 84px Oswald, Impact, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('QC SHOWDOWN  ·  FIRST TO THREE', 512, 68); }); const b2 = new THREE.Mesh(new THREE.PlaneGeometry(13, 1.6), BM('#ffffff', { map: bn })); b2.position.set(0, 3.55, -10.6); ring.add(b2); }
+  ring.userData.flash = [0, 1, 2, 3, 4, 5].map(() => { const f = glow('#ffffff', 0.5); f.material.opacity = 0; ring.add(f); return f; });
+  if (PHONE) [roof, ring].forEach(g => g.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = false; }));
+}
+function updateStages(time) {
+  const roof = STAGES[1], ring = STAGES[2];
+  if (roof && roof.visible) { roof.userData.pud.material.uniforms.uT.value = time; roof.userData.beacon.material.opacity = Math.sin(time * 3) > 0.2 ? 1 : 0.15; roof.userData.sign.material.opacity = 0.85 + 0.15 * Math.sin(time * 9) * (Math.sin(time * 1.7) > 0.93 ? 4 : 0.3); }
+  if (ring && ring.visible) ring.userData.flash.forEach((f, i) => { if (f.material.opacity > 0.01) f.material.opacity *= 0.8; else if (Math.random() < 0.012 * (game && game.shake > 0 ? 6 : 1)) { f.position.set(-14 + Math.random() * 28, 0.6 + Math.random() * 2.2, -6.4 - Math.random() * 3.5); f.material.opacity = 1; } });      // camera flashes in the crowd, more of them when something lands
+}
 if (!DARKSTAGE) {                                         // polish for the office arena: a glossy ring, spotlights from the rig, haze that pushes the crowd back
   const gloss = new THREE.Mesh(new THREE.PlaneGeometry(10.6, 4.3), waterMat({ floor: '#0a0d1c', line: '#7fa8ff', wo: 0.34 })); gloss.rotation.x = -Math.PI / 2; gloss.position.y = 0.006; gloss.material.uniforms.uG.value = 0.55; gloss.renderOrder = 0; arena.add(gloss); arena.userData.gloss = gloss;
   [[-2.6, '#bcd6ff'], [0, '#fff3dc'], [2.6, '#ffc6cc']].forEach(([x, col]) => { const cone = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 1.7, 8.5, 28, 1, true), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.055, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false })); cone.position.set(x, 4.25, 0); arena.add(cone); const pool = new THREE.Mesh(new THREE.CircleGeometry(1.7, 40), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.07, blending: THREE.AdditiveBlending, depthWrite: false })); pool.rotation.x = -Math.PI / 2; pool.position.set(x, 0.012, 0); arena.add(pool); });
@@ -1184,6 +1225,7 @@ function startFight() {
   game.p1.tag = net ? (net.role === 'host' ? 'YOU' : 'FRIEND') : 'YOU'; game.p2.tag = net ? (net.role === 'host' ? 'FRIEND' : 'YOU') : 'CPU';
   if (hubGo) { Object.assign(game, hubGo); if (hubGo.boss) game.p2.tag = 'FINAL QC'; if (hubGo.practice) game.p2.tag = 'DUMMY'; if (hubGo.bar) game.p1.meter = 100; $('tips').classList.toggle('hidden', !hubGo.practice); hubGo = null; } else $('tips').classList.add('hidden');
   game.watch = watch && !net; if (game.watch) { game.p1.cpu = true; game.p1.tag = 'YOUR PICK'; } { const st = betStake(); game.bet = st > 0 ? { stake: st, odds: betOdds() } : null; }
+  setStage(0);
   ['menu', 'end'].forEach(id => $(id).classList.add('hidden'));
   ['hud', 'topbtns'].forEach(id => $(id).classList.remove('hidden'));
   [game.p1, game.p2].forEach((f, i) => { $('pf' + i).src = window.FACE_PORTRAIT[f.key]; });
@@ -1194,12 +1236,12 @@ function startFight() {
 function newRound() {
   const G = game; G.round++; G.roundLabel = (G.wins[0] === WINS_NEED - 1 && G.wins[1] === WINS_NEED - 1) ? 'FINAL ROUND' : 'ROUND ' + G.round;
   if (!(net && net.role === 'guest')) { const ks = Object.keys(RULES).filter(k => k !== G.rule && !(net && k === 'rain')); G.rule = ks[Math.floor(Math.random() * ks.length)]; G.ruleShown = false; }
-  resetFighter(G.p1, -1.8, 1); resetFighter(G.p2, 1.8, -1); clearFX();
-  worldEnd(G); Object.assign(G, { wevT: undefined, phase: 'intro', t: 0, time: 90, clock: 0, fightShown: false, winner: null, dropT: undefined });
+  resetFighter(G.p1, -1.8, 1); resetFighter(G.p2, 1.8, -1); clearFX(); setStage(G.practice ? 0 : G.round - 1);
+  worldEnd(G); Object.assign(G, { wevT: undefined, phase: 'intro', t: 0, time: 90, clock: 0, fightShown: false, winner: null, dropT: undefined, broke: 0 });
 }
 function toMenu() {
   if (game) { game.p1.dispose(); game.p2.dispose(); if (game.cameo) { game.cameo.dispose(); game.cameo = null; } clearFX(); }
-  game = null; setMusic(false); if (window.speechSynthesis) speechSynthesis.cancel();
+  game = null; setStage(0); setMusic(false); if (window.speechSynthesis) speechSynthesis.cancel();
   ['end', 'hud', 'topbtns', 'tips'].forEach(id => $(id).classList.add('hidden')); $('menu').classList.remove('hidden');
   $('center').textContent = ''; centerTimer = 0; document.querySelectorAll('.bubble').forEach(b => b.remove());
 }
@@ -1228,7 +1270,7 @@ function update(f, o, inp) {
   if (f.state === 'ko' || f.state === 'win') { f.vx *= 0.9; physics(f); return; }
   if (f.state === 'down' && f.air) {
     const pvy = f.vy, py = f.y; physics(f);
-    if (Math.abs(f.x) >= ARENA_X - 0.001 && Math.abs(f.vx) > 2.2) { f.vx = -f.vx * 0.45; wallSplat(f); }           // slammed into the edge of the ring
+    if (Math.abs(f.x) >= ARENA_X - 0.001 && Math.abs(f.vx) > 2.2) { if (Math.abs(f.vx) > 3.3 && !game.broke && !game.dom && !game.ult && !game.practice && game.phase === 'fight') wallBreak(f, o); else { f.vx = -f.vx * 0.45; wallSplat(f); } }           // slammed into the edge of the ring
     if (f.y <= 0 && py > 0) {                                                                               // came down
       const imp = Math.abs(pvy); landFX(f, imp);
       if (!f.bounced && imp > 4.2) { f.bounced = 1; f.y = 0.02; f.vy = imp * 0.38; f.vx *= 0.55; } else { f.air = 0; f.t = 0.5; f.vx *= 0.5; }
@@ -2126,7 +2168,7 @@ function startDomain(f, o) {
 function domainEnd(G, quiet) {
   const d = G.dom; if (!d) return; G.dom = null;
   { const dk = $('dark'); dk.style.transition = 'opacity .35s'; dk.style.background = '#000'; dk.style.opacity = 0; } d.f.emI = d.o.emI = undefined;
-  d.objs.forEach(trash); poolFree(); [d.f, d.o].forEach(x => { x.sLight = null; }); window.__hemi.color.set(HEMI_COL); if (d.hidArena) STAGE.visible = true; clearTimeout(impactFrame.t); $('c').style.filter = ''; { const v = $('vig'); v.style.opacity = 0; v.style.boxShadow = 'inset 0 0 140px 40px #ff2a2a'; }
+  d.objs.forEach(trash); poolFree(); [d.f, d.o].forEach(x => { x.sLight = null; }); window.__hemi.color.set(HEMI_COL); if (d.hidArena) stageShow(true); clearTimeout(impactFrame.t); $('c').style.filter = ''; { const v = $('vig'); v.style.opacity = 0; v.style.boxShadow = 'inset 0 0 140px 40px #ff2a2a'; }
   if (!(net && net.role === 'guest')) d.f.inDom = 0;
   if (d.f.state === 'domain') { d.f.state = 'idle'; d.f.t = 0; } if (d.o.state === 'domheld') { d.o.state = 'idle'; d.o.t = 0; }
   if (quiet) return;
@@ -2169,7 +2211,7 @@ function domainStep(G) {
         d.sl = poolLight(PHONE ? 0 : 2, '#ff6a48', 16, 1.4); d.sl.position.set(d.cx, 3.2, 1.6);
         d.sl2 = PHONE ? new THREE.PointLight('#ff2a1f', 0, 9, 1.6) : poolLight(3, '#ff2a1f', 9, 1.6); d.sl2.position.set(d.cx, 1.0, -0.6);
         d.maw = glowSprite('#ff2a1f', 2.2); d.maw.position.set(d.cx, 1.25, -0.55); d.maw.material.opacity = 0; scene.add(d.maw); d.objs.push(d.maw);
-        STAGE.visible = false; d.hidArena = true;
+        stageShow(false); d.hidArena = true;
       } else { d.bench = buildBench(); scene.add(d.bench); d.objs.push(d.bench); }
       d.slash = slashPool(48); scene.add(d.slash); d.objs.push(d.slash);
     }
@@ -2177,7 +2219,7 @@ function domainStep(G) {
       const M = window.MAHO; d.maho = M; M.root.scale.setScalar(0.165); M.root.position.set(d.cx, -6, -2.7); M.root.rotation.set(0, 0, 0); for (const n in M.B) M.B[n].quaternion.copy(M.rest[n]); scene.add(M.root); d.objs.push(M.root); d.spin = 0; d.spinT = 0;
       d.hl = poolLight(0, '#f2fff7', 18, 1.1); d.hl.position.set(d.cx, 3.2, 4.4); d.hl2 = poolLight(1, '#7dffb0', 14, 1.3); d.hl2.position.set(d.cx, 2.2, -5.2);
       d.bars = [-5.6, -3.1, 3.1, 5.6].map((x, i) => { const b = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 13), new THREE.MeshBasicMaterial({ color: '#eafff2', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); b.position.set(d.cx + x, 5.5, -4.6); b.rotation.z = (i < 2 ? 1 : -1) * 0.2; b.renderOrder = 5; scene.add(b); d.objs.push(b); return b; });
-      wall.material.color.set('#0d1611'); STAGE.visible = false; d.hidArena = true;
+      wall.material.color.set('#0d1611'); stageShow(false); d.hidArena = true;
     }
     if (D.hands && window.HANDS) {                         // the void of hands: a cage of linked arms closes over the ring, a knot of giant hands behind it
       d.hands = window.HANDS.clone(true); d.hands.rotation.y = -Math.PI / 2; d.hands.position.set(d.cx, -3, 0.2); d.hands.scale.setScalar(0.4); scene.add(d.hands); d.objs.push(d.hands);
@@ -2185,7 +2227,7 @@ function domainStep(G) {
       d.hl2 = poolLight(1, '#6a3cff', 14, 1.3); d.hl2.position.set(d.cx, 1.4, -2.6);
       if (window.HANDS_PALM) { d.palm = new THREE.Mesh(window.HANDS_PALM, new THREE.MeshStandardMaterial({ color: '#e6dcff', emissive: '#9a7dff', emissiveIntensity: 0.5, roughness: 0.55 })); d.palm.scale.setScalar(1.25); d.palm.position.set(d.cx, 12, 0.15); d.palm.frustumCulled = false; scene.add(d.palm); d.objs.push(d.palm);
         d.pglow = glowSprite('#8f6bff', 2.2); d.pglow.material.opacity = 0.3; d.pglow.renderOrder = 4; scene.add(d.pglow); d.objs.push(d.pglow); }
-      wall.visible = false; STAGE.visible = false; d.hidArena = true;
+      wall.visible = false; stageShow(false); d.hidArena = true;
     }
     [0, 0.12, 0.24].forEach((dl, k) => { const sw = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.62, 64), new THREE.MeshBasicMaterial({ color: k ? D.tint : '#ffffff', transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthWrite: false })); sw.rotation.x = -Math.PI / 2; PFX(sw, new THREE.Vector3(f.x, 0.05 + k * 0.01, 0), new THREE.Vector3(), 0.7 + dl, { grow: 5.5 - k }); });   // shockwaves race out from the caster
     d.sum = buildSummon(d.key); scene.add(d.sum); d.objs.push(d.sum); if (d.shrine || d.hands || d.maho) d.sum.visible = false;
@@ -2403,6 +2445,17 @@ function landFX(f, imp) {
   for (let i = 0; i < (big ? 10 : 5); i++) { const a = Math.random() * Math.PI; PFX(glowSprite('#d9cfbd', 0.14), new THREE.Vector3(f.x, 0.08, 0.1), new THREE.Vector3(Math.cos(a) * (1.5 + Math.random() * 2), 1 + Math.random() * 2.2, 0), 0.5, { g: 9 }); }
   
 }
+const BREAK_TEXT = ['THROUGH THE WINDOW!', 'OFF THE ROOF!', 'OUT OF THE RING!'];
+function wallBreak(f, o) {                              // launched hard into the edge: the wall gives way and the fight carries on in the next place (once a round)
+  if (netGate(['wb', f === game.p1 ? 0 : 1])) return;
+  const G = game, side = Math.sign(f.x) || 1, host = !(net && net.role === 'guest'), from = stageI, y = Math.max(0.9, f.y + 0.9); G.broke = 1;
+  for (let i = 0; i < (PHONE ? 16 : 34); i++) { const sh = new THREE.Mesh(sharedGeo('shardP', () => new THREE.PlaneGeometry(1, 1)), new THREE.MeshBasicMaterial({ color: i % 3 ? '#cfe8ff' : '#ffffff', transparent: true, opacity: 0.85, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })); sh.scale.set(0.12 + Math.random() * 0.3, 0.1 + Math.random() * 0.26, 1); sh.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
+    PFX(sh, new THREE.Vector3(side * (ARENA_X + 0.1), y + (Math.random() - 0.5) * 1.6, (Math.random() - 0.5) * 1.2), new THREE.Vector3(-side * (1 + Math.random() * 5), 1 + Math.random() * 4, (Math.random() - 0.5) * 3), 0.9 + Math.random() * 0.5, { g: 11 }); }
+  hitSpark(side * (ARENA_X - 0.1), y, side, 2, 0); flash(0.55); impactFrame(80); speedLines(); G.shake = 0.65; G.hitstop = 0.22; G.zoomK = 1; sfx('thud'); sfx('bell'); showCenter(BREAK_TEXT[from] || 'WALL BREAK!', '#cfe8ff');
+  setStage(from + 1);
+  if (host) { f.hp = Math.max(1, f.hp - 7); f.x = -side * 3.4; f.y = 1.3; f.vy = 2.6; f.vx = side * 4.2; f.bounced = 0; f.air = 1; f.state = 'down'; f.t = 0.1; o.x = clamp(f.x - side * 2.4, -ARENA_X, ARENA_X); o.vx = 0; }      // they come flying in from the far side of the new place, the other one right behind
+  for (let i = 0; i < 8; i++) PFX(glowSprite('#cfd8ea', 0.2), new THREE.Vector3(-side * (ARENA_X - 0.2), 1 + Math.random(), 0.2), new THREE.Vector3(side * (2 + Math.random() * 3), Math.random() * 2, 0), 0.5, { grow: 1.5 });
+}
 function wallSplat(f) {
   if (netGate(['ws', f === game.p1 ? 0 : 1])) return;
   game.shake = Math.max(game.shake, 0.3); sfx('thud'); comicBurst(f.x - Math.sign(f.x) * 0.3, 1.5, '', 1);
@@ -2438,7 +2491,7 @@ function updateHUD() {
     if (i === ((net && net.role === 'guest') ? 1 : 0) && $('tS')) { $('tS').classList.toggle('on', f.meter >= 100); $('tD').classList.toggle('on', f.meter >= 100 && !f.domUsed); $('tD').classList.toggle('used', !!f.domUsed); if ($('tU')) { const uu = !!(G.ultUsed && G.ultUsed[i]); $('tU').classList.toggle('on', f.meter >= 100 && !uu); $('tU').classList.toggle('used', uu); } }
     setT($('nm' + i), (i ? '★'.repeat(G.wins[1]) + '  ' : '') + f.c.name + '  (' + f.tag + ')' + (i ? '' : '  ' + '★'.repeat(G.wins[0])));
   });
-  setT($('timer'), G.time); if ($('ruleTag')) setT($('ruleTag'), G.rule && G.phase !== 'ko' ? RULES[G.rule].name : '');
+  setT($('timer'), G.time); if ($('ruleTag')) setT($('ruleTag'), G.phase === 'ko' ? '' : (G.round > 1 || G.rule ? STAGE_NAMES[stageI] : '') + (G.rule ? '  ·  ' + RULES[G.rule].name : ''));
   // speech bubbles above the heads
   [G.p1, G.p2].forEach((f, i) => {
     let b = document.getElementById('bub' + i);
@@ -2617,11 +2670,11 @@ function enterHub() {
   if (game || hub || net) return; hubGroup = hubGroup || hubBuild(); previews.forEach(p => p.dispose()); previews = [];
   const others = ['himanshu', 'aman', 'charan'].filter(k => k !== sel.p1), P = new Fighter(sel.p1, 0, 1, false); P.z = 2.6; P.yaw = Math.PI; P.tag = '';
   const sts = hubGroup.userData.st, npcs = others.map((k, i) => { const s2 = sts.find(q => q.id === 'npc' + i), f = new Fighter(k, s2.x, 1, true); f.z = s2.z - 0.85; f.yaw = 0; f.tag = ''; f.state = 'idle'; s2.key = k; s2.label.material.map.dispose(); const c = textCanvas(CHARS[k].name, { size: 64, bg: null, fg: s2.col === '#7dffb0' ? '#7dffb0' : '#ff8f8f', stroke: '#05060f' }); const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; s2.label.material.map = tx; s2.label.scale.set(0.34 * c.width / c.height, 0.34, 1); return { f, key: k }; });
-  hub = { p: P, npcs, near: null, t: 0 }; hubGroup.visible = true; STAGE.visible = false; document.body.classList.add('inhub');
+  hub = { p: P, npcs, near: null, t: 0 }; hubGroup.visible = true; stageShow(false); document.body.classList.add('inhub');
   ['menu', 'end', 'hud', 'topbtns'].forEach(id => $(id).classList.add('hidden')); ['hubHud', 'hubExit'].forEach(id => $(id).classList.remove('hidden')); if (hubPrevDiff) { diff = hubPrevDiff; hubPrevDiff = null; } if (hubWatch) { watch = false; hubWatch = false; }
   camera.position.set(0, 5.4, 10); hubInfo(); audio(); if (AC && AC.state === 'suspended') AC.resume();
 }
-function leaveHub() { if (!hub) return; hub.p.dispose(); hub.npcs.forEach(n => n.f.dispose()); hub = null; hubGroup.visible = false; STAGE.visible = true; document.body.classList.remove('inhub'); ['hubHud', 'hubExit', 'hubPrompt'].forEach(id => $(id).classList.add('hidden')); }
+function leaveHub() { if (!hub) return; hub.p.dispose(); hub.npcs.forEach(n => n.f.dispose()); hub = null; hubGroup.visible = false; stageShow(true); document.body.classList.remove('inhub'); ['hubHud', 'hubExit', 'hubPrompt'].forEach(id => $(id).classList.add('hidden')); }
 function hubBack() { if (!hubReturn || game) return; hubReturn = false; enterHub(); }
 function hubInfo(msg) { const S = wallet(), beat = S.beat || {}, need = ['himanshu', 'aman', 'charan'].filter(k => k !== sel.p1), left = need.filter(k => !beat[k]);
   $('hubInfo').textContent = 'CHAI POINTS: ' + S.coins + (S.buff ? '   ·   CHAI READY: FULL BAR NEXT FIGHT' : '');
@@ -2687,7 +2740,7 @@ function guestStep() {
   const s = net.last;
   if (s && net.fresh) {                                                              // a new state has arrived
     net.fresh = false; net.gap = lerp(net.gap || 50, clamp(now - (net.snapT || now - 50), 30, 150), 0.25); net.snapT = now;
-    if (s.g.round !== G.round) { clearFX(); [G.p1, G.p2].forEach(f => { f.tilt.rotation.set(0, 0, 0); f.tilt.position.set(0, 0, 0); f.it = undefined; }); }
+    if (s.g.round !== G.round) { clearFX(); setStage(s.g.round - 1); [G.p1, G.p2].forEach(f => { f.tilt.rotation.set(0, 0, 0); f.tilt.position.set(0, 0, 0); f.it = undefined; }); }
     Object.assign(G, { phase: s.g.phase, t: s.g.t, time: s.g.time, round: s.g.round, wins: s.g.wins, roundLabel: s.g.roundLabel, rule: s.g.rule || null, matchOver: s.g.matchOver, shake: s.g.shake });
     G.winner = s.g.w === null ? null : [G.p1, G.p2][s.g.w];
     [G.p1, G.p2].forEach((f, i) => { const o = s.f[i], was = f.state, wasMv = f.moveName, lt = f.t, la = f.anim, x0 = f.x, y0 = f.y; SNAP.forEach(k => f[k] = o[k]); f.move = o.moveName ? MOVES[o.moveName] : null; if (f.state === 'super' && was !== 'super') f.fired = {};
@@ -2700,7 +2753,7 @@ function guestStep() {
   for (const e of net.evq.splice(0)) {
     const who = i => [G.p1, G.p2][i];
     if (e[0] === 'sx') sfx(e[1], e[2]); else if (e[0] === 'sy') say(who(e[1]), e[2]); else if (e[0] === 'sp') sparks(new THREE.Vector3(e[1], e[2], e[3]), e[4], e[5]);
-    else if (e[0] === 'ft') floatText(who(e[1]), e[2], e[3], e[4]); else if (e[0] === 'cb') comicBurst(e[1], e[2], e[3], e[4]); else if (e[0] === 'fin') finisher(who(e[1]), who(1 - e[1])); else if (e[0] === 'ul') startUlt(who(e[1]), who(1 - e[1])); else if (e[0] === 'ash') amanShatter(e[1], e[2], e[3]); else if (e[0] === 'cl') { clashShow(who(e[1])); game.clashHold = 1; } else if (e[0] === 'clv') clashBar(e[1]); else if (e[0] === 'cle') { clashHide(); game.clashHold = 0; } else if (e[0] === 'hs') hitSpark(e[1], e[2], e[3], e[4], e[5]); else if (e[0] === 'dm') { if (game.dom && game.dom.f !== who(e[1])) domainEnd(game, true); } if (e[0] === 'dm') startDomain(who(e[1]), who(1 - e[1])); else if (e[0] === 'rv') reviveFX(who(e[1])); else if (e[0] === 'we') worldEvent(e[1], e[2]); else if (e[0] === 'hp') healPuff(who(e[1])); else if (e[0] === 'sl') speedLines(); else if (e[0] === 'lf') landFX(who(e[1]), e[2]); else if (e[0] === 'ws') wallSplat(who(e[1])); else if (e[0] === 'ct') showCenter(e[1], e[2]);
+    else if (e[0] === 'ft') floatText(who(e[1]), e[2], e[3], e[4]); else if (e[0] === 'cb') comicBurst(e[1], e[2], e[3], e[4]); else if (e[0] === 'fin') finisher(who(e[1]), who(1 - e[1])); else if (e[0] === 'wb') wallBreak(who(e[1]), who(1 - e[1])); else if (e[0] === 'ul') startUlt(who(e[1]), who(1 - e[1])); else if (e[0] === 'ash') amanShatter(e[1], e[2], e[3]); else if (e[0] === 'cl') { clashShow(who(e[1])); game.clashHold = 1; } else if (e[0] === 'clv') clashBar(e[1]); else if (e[0] === 'cle') { clashHide(); game.clashHold = 0; } else if (e[0] === 'hs') hitSpark(e[1], e[2], e[3], e[4], e[5]); else if (e[0] === 'dm') { if (game.dom && game.dom.f !== who(e[1])) domainEnd(game, true); } if (e[0] === 'dm') startDomain(who(e[1]), who(1 - e[1])); else if (e[0] === 'rv') reviveFX(who(e[1])); else if (e[0] === 'we') worldEvent(e[1], e[2]); else if (e[0] === 'hp') healPuff(who(e[1])); else if (e[0] === 'sl') speedLines(); else if (e[0] === 'lf') landFX(who(e[1]), e[2]); else if (e[0] === 'ws') wallSplat(who(e[1])); else if (e[0] === 'ct') showCenter(e[1], e[2]);
   }
   net.replay = false;
   [[G.p1, G.p2], [G.p2, G.p1]].forEach(([f, o]) => { if (f.state === 'super') { f.fired = f.fired || {}; superStep(f, o); } f.hpShow = lerp(f.hpShow, f.hp, 0.06); if (f.bubbleT > 0) f.bubbleT -= DT; });
@@ -2809,7 +2862,7 @@ function frame(now) {
   else previews.forEach(f => { f.root.position.set(f.x, 0, 0); f.mixer.update(el); f.guardW = 1; applyPose(f); faceCamera(f); });
   if (centerTimer > 0 && centerTimer < 1e8 && (centerTimer -= el) <= 0) $('center').textContent = '';
   { const sup = game && (game.p1.state === 'super' || game.p2.state === 'super' || game.cine || (game.dom && game.dom.wall && DOMAIN[game.dom.key].dark)); window.__hemi.intensity = lerp(window.__hemi.intensity, sup ? 0.22 : 0.85, 0.15); window.__key.intensity = lerp(window.__key.intensity, sup ? 0.5 : 1.85, 0.15); }
-  updateArena(time); updateCamera(time); beatTick();
+  updateArena(time); updateStages(time); updateCamera(time); beatTick();
   renderer.render(scene, camera);
   if (glowX) { try { glowX.drawImage(canvas, 0, 0, glowC.width, glowC.height); } catch (e) { } }
   requestAnimationFrame(frame);
@@ -2869,7 +2922,7 @@ new GLTFLoader().setDRACOLoader(DRACO).parse(b64ToBuf(window.XBOT_B64), '', gltf
   keys.forEach(k => new GLTFLoader().setDRACOLoader(DRACO).parse(b64ToBuf(window.MODEL_B64[k]), '', g => { BODIES[k] = g; if (--left === 0) done(); },
     e => { console.warn('body ' + k + ' failed, using the stand-in', e); if (--left === 0) done(); }));
 }, err => { $('loading').textContent = 'Could not load the fighters: ' + err; });
-window.__dbg = { get game() { return game; }, get net() { return net; }, CHARS, hit, startSuper, startMove, camera, THREE, worldEvent, renderer, scene, startDomain, startClash, ko, startUlt, get hub() { return hub; }, enterHub, samples: () => Object.keys(SMP).length + " of 13" };
+window.__dbg = { get game() { return game; }, get net() { return net; }, CHARS, hit, startSuper, startMove, camera, THREE, worldEvent, renderer, scene, startDomain, startClash, ko, startUlt, setStage, get stage() { return stageI; }, get hub() { return hub; }, enterHub, samples: () => Object.keys(SMP).length + " of 13" };
 </script>
 </body>
 </html>
