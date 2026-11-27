@@ -217,8 +217,9 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 <div id="flash"></div>
 <div id="hubHud" class="hidden" style="position:fixed;left:14px;top:12px;z-index:5;font-family:Oswald,Teko,sans-serif;color:#fff;pointer-events:none;text-shadow:0 2px 6px #000"><div style="font-size:clamp(18px,2.6vw,28px);letter-spacing:.14em;font-weight:600">THE OFFICE · 3:00 AM</div><div id="hubInfo" style="font-size:clamp(12px,1.5vw,16px);letter-spacing:.1em;color:#ffd166;margin-top:2px"></div><div id="hubGoal" style="font-size:clamp(11px,1.3vw,14px);letter-spacing:.08em;color:#cfd6e6;margin-top:2px;max-width:46vw"></div></div>
 <div id="hubPrompt" class="hidden" style="position:fixed;left:50%;bottom:calc(46px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:5;font-family:Oswald,Teko,sans-serif;font-size:clamp(15px,2.2vw,24px);letter-spacing:.1em;color:#111;background:#ffd166;padding:6px 18px;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.5);white-space:nowrap;pointer-events:none;max-width:92vw;overflow:hidden;text-overflow:ellipsis"></div>
+<div id="hubSay" class="hidden" style="position:fixed;z-index:5;transform:translate(-50%,-100%);font-family:Oswald,Teko,sans-serif;font-size:clamp(13px,1.7vw,19px);letter-spacing:.04em;color:#111;background:#fff;padding:5px 12px;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.5);max-width:min(320px,70vw);text-align:center;pointer-events:none"></div>
 <button id="hubExit" class="hidden" style="position:fixed;right:12px;top:12px;z-index:6;font-size:15px;padding:4px 12px">CHARACTER SELECT</button>
-<div id="tips" class="hidden" style="position:fixed;left:12px;bottom:calc(40px + env(safe-area-inset-bottom,0px));z-index:4;font-family:Oswald,Teko,sans-serif;font-size:clamp(11px,1.35vw,15px);letter-spacing:.06em;line-height:1.5;color:#fff;background:rgba(8,10,24,.78);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:8px 12px;max-width:min(330px,60vw);pointer-events:none"><b style="color:#ffd166;letter-spacing:.14em">PRACTICE · THE DUMMY DOES NOT FIGHT BACK</b><br>PARRY: tap BACK just before a hit lands<br>FOLLOW UP: hit them again while they are in the air<br>SUPER: full bar, then L or SUPER<br>DOMAIN: full bar, then O<br>ULTIMATE: full bar, then U (once a match)<br>MENU, top right, takes you back</div>
+<div id="tips" class="hidden" style="position:fixed;left:12px;bottom:calc(40px + env(safe-area-inset-bottom,0px));z-index:4;font-family:Oswald,Teko,sans-serif;font-size:clamp(11px,1.35vw,15px);letter-spacing:.06em;line-height:1.5;color:#fff;background:rgba(8,10,24,.78);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:8px 12px;max-width:min(330px,60vw);pointer-events:none"><b style="color:#ffd166;letter-spacing:.14em">PRACTICE · THE DUMMY DOES NOT FIGHT BACK</b><br>PARRY: tap BACK just before a hit lands<br>FOLLOW UP: hit them again while they are in the air<br>SUPER: full bar, then L or SUPER<br>DOMAIN: full bar, then O<br>ULTIMATE: full bar, then U (once a match)<br>MENU, top right, takes you back<br><b style="color:#9dffb8;letter-spacing:.1em" id="tipCount">STAND CLOSE: THE DUMMY WILL THROW A PUNCH. PARRY IT.</b></div>
 <div id="fpsBox" style="display:none;position:fixed;left:6px;bottom:30px;z-index:60;font:12px/1.35 monospace;color:#9dffb8;background:rgba(0,0,0,.72);padding:5px 8px;border-radius:5px;white-space:pre;pointer-events:none"></div>
 <div id="clash" class="hidden"><div class="ch l" id="chL"><img id="chImgL" alt=""><b id="chNmL"></b></div><div class="ch r" id="chR"><img id="chImgR" alt=""><b id="chNmR"></b></div><div id="chSeam"></div><div id="chT">DOMAIN CLASH</div><div id="chHint"></div></div>
 <div id="dark" style="position:fixed;inset:0;pointer-events:none;opacity:0;z-index:1;background:#000;transition:opacity .35s"></div>
@@ -275,14 +276,14 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 </div>
 <div id="rot"><div>↻</div>Turn your phone sideways to play</div>
 
-<script src="models/xbot.js?v=1795765975"></script>
+<script src="models/xbot.js?v=1795767020"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <div id="speed" style="position:fixed;inset:0;pointer-events:none;opacity:0;z-index:6;background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0) 0deg 5deg, rgba(255,255,255,.55) 5deg 6deg);-webkit-mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%);mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%)"></div>
-<script src="mocap.js?v=1795765975"></script>
-<script src="anim.js?v=1795765975"></script>
-<script src="faces.js?v=1795765975"></script>
-<script src="faces_real.js?v=1795765975"></script>
-<script src="models/bodies.js?v=1795765975"></script>
+<script src="mocap.js?v=1795767020"></script>
+<script src="anim.js?v=1795767020"></script>
+<script src="faces.js?v=1795767020"></script>
+<script src="faces_real.js?v=1795767020"></script>
+<script src="models/bodies.js?v=1795767020"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -1236,7 +1237,7 @@ function startFight() {
   if (game) { game.p1.dispose(); game.p2.dispose(); if (game.cameo) { game.cameo.dispose(); game.cameo = null; } clearFX(); }
   game = { p1: new Fighter(sel.p1, -1.8, 1, false), p2: new Fighter(sel.p2, 1.8, -1, true), phase: 'intro', t: 0, time: 90, clock: 0, shake: 0, fx: [], banner: null, round: 1, wins: [0, 0], roundLabel: 'ROUND 1' };
   game.p1.tag = net ? (net.role === 'host' ? 'YOU' : 'FRIEND') : 'YOU'; game.p2.tag = net ? (net.role === 'host' ? 'FRIEND' : 'YOU') : 'CPU';
-  if (hubGo) { Object.assign(game, hubGo); if (hubGo.boss) game.p2.tag = 'FINAL QC'; if (hubGo.practice) game.p2.tag = 'DUMMY'; if (hubGo.bar) game.p1.meter = 100; $('tips').classList.toggle('hidden', !hubGo.practice); hubGo = null; } else $('tips').classList.add('hidden');
+  if (hubGo) { Object.assign(game, hubGo); if (hubGo.boss) bossify(game.p2); if (hubGo.practice) game.p2.tag = 'DUMMY'; if (hubGo.bar) game.p1.meter = 100; if (hubGo.boss) setTimeout(() => { if (game && game.boss) setStage(1); }, 0); $('tips').classList.toggle('hidden', !hubGo.practice); hubGo = null; } else $('tips').classList.add('hidden');
   game.watch = watch && !net; if (game.watch) { game.p1.cpu = true; game.p1.tag = 'YOUR PICK'; } { const st = betStake(); game.bet = st > 0 ? { stake: st, odds: betOdds() } : null; }
   setStage(0);
   ['menu', 'end'].forEach(id => $(id).classList.add('hidden'));
@@ -1249,7 +1250,7 @@ function startFight() {
 function newRound() {
   const G = game; G.round++; G.roundLabel = (G.wins[0] === WINS_NEED - 1 && G.wins[1] === WINS_NEED - 1) ? 'FINAL ROUND' : 'ROUND ' + G.round;
   if (!(net && net.role === 'guest')) { const ks = Object.keys(RULES).filter(k => k !== G.rule && !(net && k === 'rain')); G.rule = ks[Math.floor(Math.random() * ks.length)]; G.ruleShown = false; }
-  resetFighter(G.p1, -1.8, 1); resetFighter(G.p2, 1.8, -1); clearFX(); setStage(G.practice ? 0 : G.round - 1);
+  resetFighter(G.p1, -1.8, 1); resetFighter(G.p2, 1.8, -1); clearFX(); setStage(G.practice ? 0 : G.boss ? G.round : G.round - 1); if (G.boss) { G.p2.meter = 50; G.rage2 = 0; G.p2.spdMul = 1; (G.ultUsed = G.ultUsed || [0, 0])[1] = 0; }
   worldEnd(G); Object.assign(G, { wevT: undefined, phase: 'intro', t: 0, time: 90, clock: 0, fightShown: false, winner: null, dropT: undefined, broke: 0 });
 }
 function toMenu() {
@@ -1313,7 +1314,7 @@ function update(f, o, inp) {
     if (away && threat && grounded) { if (f.state !== 'block') { f.blockAge = f.parryCd > 0 ? 9 : 0; f.parryCd = 0.45; } f.state = 'block'; f.crouchBlock = crouch; f.vx = 0; }        // hold back to block (down-back blocks low)
     else if (crouch) { f.state = 'crouch'; f.vx = 0; }
     else {
-      f.vx = dir * (fwd ? WALK : WALK_BACK) * (SPD[f.key] || 1); if (inp.up && grounded) f.vy = JUMPV;
+      f.vx = dir * (fwd ? WALK : WALK_BACK) * (SPD[f.key] || 1) * (f.spdMul || 1); if (inp.up && grounded) f.vy = JUMPV;
       f.state = (!grounded || f.vy > 0) ? 'jump' : dir ? 'walk' : 'idle';
     }
     if (inp.grab && grounded) { f.chain = ''; startMove(f, 'grab'); }
@@ -1368,6 +1369,7 @@ function hit(att, def, dmg, kb, opts = {}) {
   }
   const isCpu = !net && def.cpu && ['idle', 'walk', 'block'].includes(def.state) && def.facing === toAtt && def.y <= 0;
   const parry = !opts.grab && (!opts.super || opts.dom) && ((blocking && (def.blockAge ?? 9) <= PARRY_WIN) || (isCpu && Math.random() < AI[diff].par * (opts.dom ? 0.6 : 1)) || (window.__forceParry && def === game.p2));
+  if (parry && game.practice && def === game.p1) game.parries = (game.parries || 0) + 1;
   if (parry) {                                                            // blocked at the last instant: the blow is turned aside, the attacker is left open, the next hit is a critical
     def.critNext = true; def.parryNext = true; def.meter = Math.min(100, def.meter + 12); def.stam = 100; def.state = 'block'; def.blockAge = 9; def.flash = 0;
     hitSpark(def.x + toAtt * 0.32, clamp(hp.y + 0.15, def.y + 0.9, def.y + 1.6), toAtt, 4, 0); game.shake = Math.max(game.shake, 0.22); game.hitstop = 0.15; sfx('block'); sfx('bell');
@@ -1819,7 +1821,10 @@ function step() {
     if (G.t > 2.4) { G.phase = 'fight'; G.t = 0; }
   } else if (G.phase === 'fight') {
     update(p1, p2, G.watch ? cpuInput(p1, p2) : playerInput()); update(p2, p1, net ? remoteInput() : cpuInput(p2, p1));
-    worldTick(G); if (G.practice) { G.time = 99; G.clock = 0; [p1, p2].forEach(f => { f.hp = Math.min(MAXHP, f.hp + 0.35); f.meter = Math.min(100, f.meter + 0.25); }); G.ultUsed = [0, 0]; p1.domUsed = false; }
+    worldTick(G); if (G.boss) bossStep(G); if (G.practice) { G.drillT = (G.drillT === undefined ? 2.5 : G.drillT) - DT; const dd = Math.abs(p1.x - p2.x);
+      if (G.drillT < 0.55 && !G.drillWarn && dd < 1.9 && ['idle', 'walk'].includes(p2.state)) { G.drillWarn = 1; floatText(p2, 'NOW!', '#ffd166', 30); }
+      if (G.drillT <= 0) { G.drillT = 2.6 + Math.random() * 0.8; G.drillWarn = 0; if (dd < 1.9 && ['idle', 'walk'].includes(p2.state) && p2.y <= 0) { p2.facing = Math.sign(p1.x - p2.x) || 1; startMove(p2, 'kick'); } }
+      setT($('tipCount'), G.parries ? 'PARRIES LANDED: ' + G.parries + (G.parries >= 3 ? '   ·   YOU HAVE GOT IT' : '') : 'STAND CLOSE: WHEN IT SAYS NOW!, TAP BACK'); G.time = 99; G.clock = 0; [p1, p2].forEach(f => { f.hp = Math.min(MAXHP, f.hp + 0.35); f.meter = Math.min(100, f.meter + 0.25); }); G.ultUsed = [0, 0]; p1.domUsed = false; }
     if (!net) { G.dropT = (G.dropT === undefined ? 7 + Math.random() * 4 : G.dropT) - DT; if (G.dropT <= 0) { G.dropT = G.rule === 'rain' ? 3 + Math.random() * 1.5 : 10 + Math.random() * 7; dropItem(); } }
     [[p1, p2], [p2, p1]].forEach(([f, o]) => {                                        // Himanshu heals whenever he is behind, faster when nearly out
       if (f.key !== 'himanshu' || o.key === 'himanshu' || f.hp <= 0 || f.state === 'ko') return;
@@ -2538,6 +2543,7 @@ function showEnd() {
     st.classList.remove('on'); void st.offsetWidth; st.style.color = youWon ? col : '#ff3b30';
     st.innerHTML = youWon ? band + ' · ' + sc.toFixed(2) + '<small>' + (band === 'EASY' ? 'TOO EASY · PARKED' : band === 'EXPERT' ? 'ONE RUN · SHIP IT' : 'SHIPPABLE') + '</small>' : 'NOT SHIPPABLE<small>OPPONENT SCORED ' + sc.toFixed(2) + ' · ' + band + '</small>';
     { let S = {}; try { S = JSON.parse(localStorage.getItem('qcs_stats') || '{}'); } catch (e) { } S.best = S.best || {}; const me = (net && net.role === 'guest' ? game.p2 : game.p1).key;
+      S.last = { won: !!youWon, band, sc: sc.toFixed(2) };
       if (youWon) { S.streak = (S.streak || 0) + 1; S.wins = (S.wins || 0) + 1; S.top = Math.max(S.top || 0, S.streak); if (S.best[me] === undefined || sc < S.best[me]) S.best[me] = +sc.toFixed(2); } else S.streak = 0;
       try { localStorage.setItem('qcs_stats', JSON.stringify(S)); } catch (e) { }
       const w2 = S.wins || 0, rank = w2 >= 25 ? 'LEAD' : w2 >= 10 ? 'REVIEWER' : w2 >= 3 ? 'TASKER' : 'INTERN', b = S.best[me], bb = b === undefined ? '' : '  ·  HARDEST WIN AS ' + CHARS[me].name + ': ' + (b < 0.25 ? 'EXPERT ' : b < 0.376 ? 'HARD ' : b < 0.503 ? 'MEDIUM ' : 'EASY ') + b.toFixed(2);
@@ -2660,6 +2666,7 @@ function betUI() { if (!$('betBal')) return; const c = wallet().coins, st = betS
 document.querySelectorAll('[data-b]').forEach(b => b.addEventListener('click', () => { bet = b.dataset.b === 'all' ? 'all' : +b.dataset.b; betUI(); }));
 $('watchBtn').addEventListener('click', () => { watch = !watch; if (watch && !bet) bet = 50; betUI(); }); setInterval(() => { if (!game) betUI(); }, 700); setTimeout(betUI, 50);
 // ---------------------------------------------------------------- the office: a small place to walk around between fights
+const _hv = new THREE.Vector3();
 let hub = null, hubGroup = null, hubReturn = false, hubGo = null, hubPrevDiff = null, hubWatch = false;
 const HUBW = 8.6, HUBD = 5.2, HUB_OBS = [];
 function hubBuild() {
@@ -2699,7 +2706,7 @@ function enterHub() {
   ['menu', 'end', 'hud', 'topbtns'].forEach(id => $(id).classList.add('hidden')); ['hubHud', 'hubExit'].forEach(id => $(id).classList.remove('hidden')); if (hubPrevDiff) { diff = hubPrevDiff; hubPrevDiff = null; } if (hubWatch) { watch = false; hubWatch = false; }
   camera.position.set(0, 5.4, 10); hubInfo(); audio(); if (AC && AC.state === 'suspended') AC.resume();
 }
-function leaveHub() { if (!hub) return; hub.p.dispose(); hub.npcs.forEach(n => n.f.dispose()); hub = null; hubGroup.visible = false; stageShow(true); document.body.classList.remove('inhub'); ['hubHud', 'hubExit', 'hubPrompt'].forEach(id => $(id).classList.add('hidden')); }
+function leaveHub() { if (!hub) return; hub.p.dispose(); hub.npcs.forEach(n => n.f.dispose()); hub = null; hubGroup.visible = false; stageShow(true); document.body.classList.remove('inhub'); ['hubHud', 'hubExit', 'hubPrompt', 'hubSay'].forEach(id => $(id).classList.add('hidden')); }
 function hubBack() { if (!hubReturn || game) return; hubReturn = false; enterHub(); }
 function hubInfo(msg) { const S = wallet(), beat = S.beat || {}, need = ['himanshu', 'aman', 'charan'].filter(k => k !== sel.p1), left = need.filter(k => !beat[k]);
   $('hubInfo').textContent = 'CHAI POINTS: ' + S.coins + (S.buff ? '   ·   CHAI READY: FULL BAR NEXT FIGHT' : '');
@@ -2713,10 +2720,31 @@ function hubStep() {
   P.x = clamp(P.x, -HUBW, HUBW); P.z = clamp(P.z, -HUBD + 0.1, HUBD);
   const obs = HUB_OBS.concat(H.npcs.map(n => [n.f.x, n.f.z, 0.55])); obs.forEach(([ox, oz, r]) => { const ex = P.x - ox, ez = P.z - oz, d = Math.hypot(ex, ez), R = r + 0.3; if (d < R && d > 0.001) { P.x = ox + ex / d * R; P.z = oz + ez / d * R; } });      // nobody walks through a desk or a colleague
   [P, ...H.npcs.map(n => n.f)].forEach(f => { f.t += DT; f.anim = (f.anim || 0) + 1; f.y = 0; });
-  H.npcs.forEach(n => { const a = Math.atan2(P.x - n.f.x, P.z - n.f.z), near = Math.hypot(P.x - n.f.x, P.z - n.f.z) < 3.2; n.f.yaw = near ? a : 0; });       // they turn to look at you when you come close
+  H.npcs.forEach(n => { const a = Math.atan2(P.x - n.f.x, P.z - n.f.z), dn = Math.hypot(P.x - n.f.x, P.z - n.f.z), near = dn < 3.2; n.f.yaw = near ? a : 0; if (dn < 2.3 && !n.spoke) { n.spoke = 1; hubSay(n.f, hubLine(n.key)); } else if (dn > 4) n.spoke = 0; });
+  if (H.say) { H.say.t -= DT; const e = $('hubSay'); if (H.say.t <= 0) { H.say = null; e.classList.add('hidden'); } else { const [sx, sy] = toScreen(_hv.set(H.say.f.x, 2.25, H.say.f.z || 0)); e.style.left = sx + 'px'; e.style.top = sy + 'px'; } }       // they turn to look at you when you come close
   let best = null, bd = 1.25; hubGroup.userData.st.forEach(s2 => { const d = Math.hypot(P.x - s2.x, P.z - s2.z); s2.ring.scale.setScalar(1 + 0.06 * Math.sin(H.t * 4)); s2.ring.material.opacity = d < 1.25 ? 1 : 0.5; if (d < bd) { bd = d; best = s2; } });
   if (best !== H.near) { H.near = best; const pr = $('hubPrompt'); if (best) { pr.textContent = hubText(best); pr.classList.remove('hidden'); } else pr.classList.add('hidden'); }
   if (best && (pressed.has('KeyJ') || pressed.has('Enter') || pressed.has('Space') || pressed.has('KeyZ'))) hubUse(best);
+}
+const HUB_LINES = {
+  aman:     { fresh: ['Pehle cosine check karte hain. Ready?', 'Tumhara stance pichhle wale se 0.91 similar hai.', 'Ek round? Similarity dekhte hain.'], beat: ['Woh haar ek anomaly thi. Rematch?', 'Threshold badal diya hai. Phir se aao.'] },
+  charan:   { fresh: ['Ladna hai? Of course.', 'Galti mat karna. Main toh karunga, of course.', 'Chai ke baad? Ya abhi? Of course abhi.'], beat: ['Galti ho gayi thi. Phir se?', 'Is baar nahi phislunga. Of course.'] },
+  himanshu: { fresh: ['Bhaiya, ek round? Ship karke dikhao.', 'Bhaiya bhaiya! Aa jao.', 'Ek hi Opus run mein khatam karunga.'], beat: ['Bhaiya, regrade karo. Ek aur.', 'Bhaiya... woh false alarm tha.'] } };
+function hubLine(key) {                                 // what a teammate says: about your last result if there is one, otherwise a challenge
+  const S = wallet(), L = HUB_LINES[key], last = S.last, opts = [];
+  if (S.boss) opts.push('Final QC ko hara diya? Respect.');
+  if (last && !last.used) { last.used = 1; walletSave(S); return last.won ? (last.band === 'EASY' ? 'EASY ' + last.sc + '? Too easy. Parked.' : last.band === 'EXPERT' ? 'EXPERT ' + last.sc + '? One run? Respect.' : last.band + ' ' + last.sc + '. Shippable.') : 'Haar gaye? Regrade not allowed.'; }
+  return pick(opts.concat((S.beat || {})[key] ? L.beat : L.fresh));
+}
+function hubSay(f, text) { hub.say = { f, text, t: 3.2 }; const e = $('hubSay'); e.textContent = text; e.classList.remove('hidden'); }
+function bossify(f) {                                  // Final QC: a teammate's body gone dark, bigger, with a red glow
+  f.tag = 'FINAL QC'; f.boss = 1; f.meter = 50; f.root.scale.setScalar(1.12);
+  f.emI = 0.015; (f.mats || []).forEach(m => { m.color.set('#4a2030'); });                // the body goes dark and red: the bright self-lit look is switched off
+  const au = glowSprite('#ff2a3a', 3.2); au.material.opacity = 0.35; au.position.set(0, 1.2, -0.4); au.renderOrder = -1; f.root.add(au); f.bossAura = au;
+}
+function bossStep(G) {                                  // its bar fills on its own; at half health it speeds up and can open a second domain
+  const b = G.p2; b.meter = Math.min(100, b.meter + 0.055); if (b.bossAura) b.bossAura.material.opacity = (G.rage2 ? 0.6 : 0.3) + 0.12 * Math.sin(G.t * (G.rage2 ? 9 : 4));
+  if (!G.rage2 && b.hp <= MAXHP * 0.5 && b.hp > 0 && !G.dom && !G.ult && ['idle', 'walk'].includes(b.state)) { G.rage2 = 1; b.spdMul = 1.18; b.domUsed = false; b.meter = 100; (G.ultUsed = G.ultUsed || [0, 0])[1] = 0; showCenter('FINAL QC IS NOT HAPPY', '#ff2a3a'); flash(0.3); G.shake = 0.5; sfx('thud'); sfx('bell'); impactFrame(70); fxRing(b.x, 0.04, 0, '#ff2a3a', 0.5, 0.5, 9, 'y'); }
 }
 function hubText(s2) { const S = wallet(), act = COARSE ? 'PUNCH' : 'J', need = ['himanshu', 'aman', 'charan'].filter(k => k !== sel.p1), open = need.every(k => (S.beat || {})[k]);
   if (s2.key) return act + ': CHALLENGE ' + CHARS[s2.key].name + ((S.beat || {})[s2.key] ? ' AGAIN' : '');
