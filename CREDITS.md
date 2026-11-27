@@ -12,3 +12,5 @@
 - Effect sprites: "Particle Pack" by Kenney (kenney.nl), CC0 (public domain). Sixteen picked and resized; downloaded from https://opengameart.org/content/particle-pack-80-sprites.
 
 - Office desks, screens, keyboards, plants and lamps: Kenney Furniture Pack (CC0), www.kenney.nl. Crowd figures are made from the stand-in body already credited above.
+
+- Fight animations (punches, kicks, hit reactions, win pose): converted from Mixamo (Adobe) clips for the X Bot skeleton. Only the converted game data is included; the source files are not redistributed.

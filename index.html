@@ -288,9 +288,10 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 <div id="speed" style="position:fixed;inset:0;pointer-events:none;opacity:0;z-index:6;background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0) 0deg 5deg, rgba(255,255,255,.55) 5deg 6deg);-webkit-mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%);mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%)"></div>
 <script src="mocap.js?v=1795767587"></script>
 <script src="anim.js?v=1795767587"></script>
-<script src="faces.js?v=1795780368"></script>
+<script src="anim_mx.js?v=1795786719"></script>
+<script src="faces.js?v=1795786719"></script>
 <script src="faces_real.js?v=1795767587"></script>
-<script src="models/bodies.js?v=1795780368"></script>
+<script src="models/bodies.js?v=1795786719"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -889,8 +890,18 @@ function aLen(c) { return (c.n - 1) / c.fps; }
 function aWarp(c, t, mv) { const ts = mv.a * 0.92, len = aLen(c), st = c.strike || len * 0.4; return t < ts ? st * (t / ts) : st + (len - st) * Math.min(1, (t - ts) / Math.max(0.05, mv.dur - ts)); }
 const _uq1 = new THREE.Quaternion(), _uq2 = new THREE.Quaternion(), _uR = new THREE.Vector3(-1, 0, 0), _uv = new THREE.Vector3(), _uv2 = new THREE.Vector3();
 const _mq1 = new THREE.Quaternion(), _mq2 = new THREE.Quaternion();
+const MX = !!(window.ANIM && ANIM.clips.mx_jab) && !/[?&]mx=0/.test(location.search);          // animator-made fight clips (anim_mx.js); ?mx=0 shows the old movement
+const MXMAP = { jab: 'mx_jab', cross: 'mx_cross', upper: 'mx_upper', dashpunch: 'mx_dash', kick: 'mx_kick', kick2: 'mx_kick2', flykick: 'mx_fly', sweep: 'mx_sweep' };
+const MXVAR = { himanshu: { cross: 'mx_hook' }, aman: { cross: 'mx_elbow', kick: 'mx_side' }, charan: {} };   // each fighter throws some moves his own way
+function mxClip(f) { if (!(MX && f.state === 'atk' && f.moveName)) return null; const k = (MXVAR[f.key] || {})[f.moveName] || MXMAP[f.moveName]; return k ? ANIM.clips[k] || ANIM.clips[MXMAP[f.moveName]] || null : null; }
+function mxLimb(f) { const c = mxClip(f); if (!c || !c.limb) return null; return /Hand/.test(c.limb) && f.gloves ? f.gloves[c.limb === 'LeftHand' ? 0 : 1] : f.bones[c.limb]; }
 function animFor(f) {
   const C = ANIM.clips, s = f.state, t = f.t, st = { c: C.stance, u: 0 };
+  if (MX && s === 'atk' && f.move) { const c = mxClip(f); if (c) { const mv = f.move, fly = f.moveName === 'flykick'; return { base: { c, u: aWarp(c, t, mv) }, fast: 1, lunge: fly ? 0 : (mv.lunge || 0.1) * 0.9 * env(t, mv.a * 0.7, mv.b, mv.dur) }; } }
+  if (MX && s === 'hit') { const hi = f.hitHi !== 0, c = hi ? C.mx_hith : (f.stun > 0.42 ? C.mx_hitB : C.mx_hitb), k = t < 0.045 ? t / 0.045 : Math.pow(Math.max(0, 1 - (t - 0.045) / 0.3), 1.6); return { base: { c, u: Math.min(t * 1.5 + 0.04, aLen(c) * 0.6) }, fast: 1, lunge: -0.12 * k }; }
+  if (MX && s === 'down' && C.mx_fall) return t < 0.5 ? { base: { c: C.mx_fall, u: t / 0.5 * aLen(C.mx_fall) }, fast: 1 } : t < 0.8 ? { base: { c: C.mx_fall, u: 99 } } : { base: { c: C.mx_getup, u: (t - 0.8) / 0.8 * aLen(C.mx_getup) }, fast: 1 };
+  if (MX && s === 'ko' && C.mx_ko) return { base: { c: C.mx_ko, u: Math.min(t * 1.7, aLen(C.mx_ko)) }, fast: 1 };
+  if (MX && s === 'win' && f.key === 'himanshu') return { base: { c: C.mx_win, u: Math.min(t, aLen(C.mx_win) - 0.05) } };
   if ((s === 'idle' || s === 'walk') && window.MOCAP && MOCAP.idle) return null;      // idle and walking use the motion-captured boxer's bounce (the lively one)
   if (s === 'idle') return { base: st, bob: 1 };
   if (s === 'walk') { f.walkU = (f.walkU || 0) + DT * 1.3 * (f.vx * f.facing >= 0 ? 1 : -1); return { base: st, over: { c: C.walk, u: f.walkU }, mask: A_LEGS, bob: 1 }; }
@@ -1644,7 +1655,7 @@ const _cp = new THREE.Vector3();
 function contactPoint(att, def, hp, toAtt, opts) {       // where the fist or the foot actually is, pulled onto the front of the body it hit
   let y = hp.y + 0.1;
   if (att.state === 'atk' && att.move && !opts.super && att.bones) {
-    const an = att.move.anim, b = (an === 'kick' || an === 'flykick' || an === 'sweep') ? att.bones.RightFoot : (att.gloves ? att.gloves[att.move.hand === 'L' ? 0 : 1] : att.bones[att.move.hand === 'L' ? 'LeftHand' : 'RightHand']);
+    const an = att.move.anim, b = mxLimb(att) || (an === 'kick' || an === 'flykick' || an === 'sweep') ? (mxLimb(att) || att.bones.RightFoot) : (att.gloves ? att.gloves[att.move.hand === 'L' ? 0 : 1] : att.bones[att.move.hand === 'L' ? 'LeftHand' : 'RightHand']);
     if (b) { b.getWorldPosition(_cp); y = clamp(_cp.y, def.y + 0.25, def.y + 1.72); }
     if (att.moveName === 'upper') y = def.y + 1.6;
   }
@@ -1954,7 +1965,7 @@ function fighterFX(f) {
   if (!game || game.paused) return;
   const s = f.state;
   if (s === 'atk' && f.move && f.t > f.move.a * 0.4 && f.t < f.move.b + 0.06) {          // streak behind the fist or foot
-    const an = f.move.anim, src = (an === 'kick' || an === 'flykick' || an === 'sweep') ? f.bones.RightFoot : (f.gloves ? f.gloves[f.move.hand === 'L' ? 0 : 1] : f.bones[f.move.hand === 'L' ? 'LeftHand' : 'RightHand']);
+    const an = f.move.anim, src = mxLimb(f) || (an === 'kick' || an === 'flykick' || an === 'sweep') ? (mxLimb(f) || f.bones.RightFoot) : (f.gloves ? f.gloves[f.move.hand === 'L' ? 0 : 1] : f.bones[f.move.hand === 'L' ? 'LeftHand' : 'RightHand']);
     if (src) { src.getWorldPosition(_wp); trailPush(f, _wp, an === 'punch' ? 0.065 : 0.095); }
   } else if (f.trail && f.trail.pts.length && !(game.hitstop > 0)) { f.trail.pts.pop(); f.trail.pts.pop(); trailBuild(f); }
   if (s === 'super') {                                                                   // power-up aura
@@ -3030,13 +3041,13 @@ new GLTFLoader().setDRACOLoader(DRACO).parse(b64ToBuf(window.XBOT_B64), '', gltf
       const figs = ['crowdA', 'crowdB', 'crowdC'].map(get).filter(Boolean);
       if (figs.length && C) {
         const pickFig = () => { const r = Math.random(); return r < 0.6 ? 0 : r < 0.8 ? 1 % figs.length : 2 % figs.length; }, lists = figs.map(() => []);
-        C.crowd.forEach((c, i) => { if (PHONE && i % 2) return; lists[pickFig()].push(c); });   // phones draw half the crowd const tints = ['#3a2a3e', '#24304f', '#3d3a2a', '#213d38', '#33284a', '#4a4d5c', '#402c24', '#1f3a44'];
+        C.crowd.forEach((c, i) => { if (PHONE && i % 2) return; lists[pickFig()].push(c); }); const tints = ['#3a2a3e', '#24304f', '#3d3a2a', '#213d38', '#33284a', '#4a4d5c', '#402c24', '#1f3a44'];
         C.inst = figs.map((fg, k) => { let geo = null; fg.traverse(q => { if (q.isMesh && !geo) geo = q.geometry.clone().applyMatrix4(q.matrixWorld); }); geo.translate(-(6 + k * 1.4), 0, 0); geo.computeVertexNormals();
           const im = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, metalness: 0 }), Math.max(1, lists[k].length)); im.frustumCulled = false;
           lists[k].forEach((c, ii) => { c.im = im; c.ii = ii; c.s = 0.78 + Math.random() * 0.1; im.setColorAt(ii, new THREE.Color(pick(tints)).multiplyScalar(0.2)); }); im.count = lists[k].length; if (im.instanceColor) im.instanceColor.needsUpdate = true; arena.add(im); return im; });
         C.bodyM.visible = C.headM.visible = false;
       }
-    }, undefined, () => {});
+    }, undefined, e => { window.__officeErr = String(e && e.message || e); });
     new GLTFLoader().setDRACOLoader(DRACO).load('models/shrine.glb', g => { window.SHRINE = g.scene; g.scene.traverse(o => { if (o.isMesh) { o.frustumCulled = false; if (o.material.emissiveMap) { o.material.emissive.set('#ff7a5a'); o.material.emissiveIntensity = 0.55; } o.material.color.set('#b8574a'); if (false) { } } }); warm(g.scene); }, undefined, () => {});   // the shrine for Himanshu's domain loads in the background
     const rm = new URLSearchParams(location.search).get('room'); if (rm) { $('netPanel').classList.remove('hidden'); $('codeIn').value = rm; joinRoom(rm); }
     requestAnimationFrame(frame);
