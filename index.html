@@ -95,7 +95,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 #knob{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px;border-radius:50%;background:rgba(255,255,255,.8);box-shadow:0 3px 10px rgba(0,0,0,.5);pointer-events:none}
 #acts{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));width:236px;height:176px;z-index:3}
 #acts button{position:absolute;width:60px;height:60px;padding:0;border-radius:50%;font:400 13px Oswald,Teko,Impact,sans-serif;letter-spacing:.5px;color:#fff;background:rgba(35,42,74,.78);border:3px solid rgba(255,255,255,.45);touch-action:none;-webkit-tap-highlight-color:transparent}
-#acts button:active{transform:scale(.9);filter:brightness(1.4)}
+#acts button.dn{transform:scale(.88);background:#fff!important;color:#111!important}
 #acts .big{width:82px;height:82px;font-size:17px;background:rgba(200,48,36,.88)}
 #tP{right:86px;bottom:0}#tK{right:0;bottom:48px}#tG{right:176px;bottom:6px}
 #tS{right:96px;bottom:94px;opacity:.4}#tD{right:10px;bottom:140px;width:66px;height:36px;border-radius:18px;opacity:.4}
@@ -191,6 +191,16 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 .overlay button{border-radius:4px!important}
 #fightBtn{background:#e0202c!important;color:#fff!important;border:1px solid #fff!important;box-shadow:0 0 22px rgba(224,32,44,.55)}
 #friendBtn{background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.45)!important;color:#fff!important}#tS.on{background:#fff;color:#111;box-shadow:0 0 16px #fff}#tD.on{background:#e0202c;box-shadow:0 0 16px #e0202c}
+/* menu with attitude: slanted buttons, a FIGHT button you cannot miss, nothing overlapping */
+#menu .vs{display:none!important}
+#menu .panel{border-top:4px solid #ffc24a!important;box-shadow:0 18px 60px rgba(0,0,0,.6)}
+#menu .tab{color:#aab3d6!important}#menu .tab.on{color:#fff!important;border-color:#ffc24a!important}
+#menu .tile .tn{font-size:12px!important;letter-spacing:0!important;white-space:nowrap}
+#menu .panel .row button{clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);border-radius:0!important;padding-left:20px!important;padding-right:20px!important;transition:transform .08s,filter .08s}
+#menu .panel .row button:hover{filter:brightness(1.25);transform:translateY(-1px)}#menu .panel .row button:active{transform:scale(.96)}
+#menu #fightBtn{width:100%;font-size:clamp(24px,3.6vw,40px)!important;letter-spacing:.24em!important;padding-top:8px!important;padding-bottom:8px!important;background:linear-gradient(#ff4458,#c8102e)!important;border-color:#ff8a96!important;clip-path:polygon(18px 0,100% 0,calc(100% - 18px) 100%,0 100%)!important;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+#menu #fsBtn,#menu #muteBtn{font-size:13px!important;opacity:.85}
+@media (max-height:520px){#menu #fightBtn{font-size:21px!important;padding-top:2px!important;padding-bottom:2px!important}#menu .chap{display:none!important}#menu #betBal{font-size:12px!important}#menu .panel .row{margin-top:3px!important}#menu .panel .row button{padding-top:3px!important;padding-bottom:3px!important}#menu #fsBtn,#menu #muteBtn{font-size:12px!important;padding-left:12px!important;padding-right:12px!important}}
 </style>
 </head>
 <body>
@@ -228,10 +238,11 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
     <div class="tabs"><button id="tabP1" class="tab on"><span class="tg p1">1P</span> PLAY AS</button><button id="tabCPU" class="tab"><span class="tg cpu">CPU</span> FIGHT AGAINST</button></div>
     <div class="chap">STAGE-1 · THE QC TEAM</div>
     <div class="grid" id="cards"></div>
-    <div class="row"><span class="lbl">STAGE</span><button class="on">STAGE-1 MAIN · 3 AM</button><span class="lbl">CPU</span><button data-d="easy">EASY</button><button data-d="normal" class="on">NORMAL</button><button data-d="hard">HARD</button></div>
+    <div class="row"><span class="lbl">CPU</span><button data-d="easy">EASY</button><button data-d="normal" class="on">NORMAL</button><button data-d="hard">HARD</button></div>
     <div class="row" id="betRow"><span class="lbl">BET</span><button data-b="0" class="on">NONE</button><button data-b="50">50</button><button data-b="100">100</button><button data-b="250">250</button><button data-b="all">ALL IN</button><button id="watchBtn">🎲 WATCH &amp; BET</button></div>
     <div class="row" style="margin-top:2px"><span class="lbl" id="betBal" style="letter-spacing:.1em"></span></div>
-    <div class="row"><button id="hubBtn" style="background:#1d7a52;border-color:#6fe3a0">🏢 WALK THE OFFICE</button><button id="fsBtn">⛶ FULL SCREEN</button><button id="muteBtn">🔊 VOICE ON</button><button id="friendBtn" style="background:#2456c9;border-color:#6f9bff">🌐 PLAY WITH A FRIEND</button><button id="fightBtn" class="big">FIGHT!</button></div>
+    <div class="row"><button id="hubBtn" style="background:#1d7a52;border-color:#6fe3a0">🏢 WALK THE OFFICE</button><button id="fsBtn">⛶ FULL SCREEN</button><button id="muteBtn">🔊 VOICE ON</button><button id="friendBtn" style="background:#2456c9;border-color:#6f9bff">🌐 PLAY WITH A FRIEND</button></div>
+    <div class="row"><button id="fightBtn" class="big">FIGHT!</button></div>
     <div class="help" id="netStatus" style="color:#ffcc00"></div>
     <div class="help">←/→ your fighter · ↑/↓ the computer's · 1/2/3 difficulty · Enter fight<br>In the fight: A/D move · W jump · S crouch · hold BACK block · tap BACK just before a hit to PARRY · F full screen · J punch · K kick · I or J+K grab · L/Space super · O domain · U ultimate (once a match) · Esc pause</div>
   </div>
@@ -258,19 +269,20 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 <div id="updbar" class="hidden">NEW VERSION READY · PRESS U TO RELOAD</div>
 <div id="ticker"><span class="lab2">THE DAILY REGRADE</span><span class="run" id="tickText"></span></div>
 <div id="touch">
-  <div id="stick"><div id="knob"></div></div>
+  <div id="stickZone" style="position:fixed;left:0;bottom:0;width:46%;top:24%;touch-action:none;z-index:3"></div>
+  <div id="stick" style="pointer-events:none"><div id="knob"></div></div>
   <div id="acts"><button class="a big" id="tP" data-k="KeyJ">PUNCH</button><button class="a big" id="tK" data-k="KeyK">KICK</button><button id="tG" data-k="KeyI">GRAB</button><button class="s" id="tS" data-k="KeyL">SUPER</button><button class="d" id="tD" data-k="KeyO">DOMAIN</button><button class="d" id="tU" data-k="KeyU">ULT</button></div>
 </div>
 <div id="rot"><div>↻</div>Turn your phone sideways to play</div>
 
-<script src="models/xbot.js?v=1795765117"></script>
+<script src="models/xbot.js?v=1795765975"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <div id="speed" style="position:fixed;inset:0;pointer-events:none;opacity:0;z-index:6;background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0) 0deg 5deg, rgba(255,255,255,.55) 5deg 6deg);-webkit-mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%);mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%)"></div>
-<script src="mocap.js?v=1795765117"></script>
-<script src="anim.js?v=1795765117"></script>
-<script src="faces.js?v=1795765117"></script>
-<script src="faces_real.js?v=1795765117"></script>
-<script src="models/bodies.js?v=1795765117"></script>
+<script src="mocap.js?v=1795765975"></script>
+<script src="anim.js?v=1795765975"></script>
+<script src="faces.js?v=1795765975"></script>
+<script src="faces_real.js?v=1795765975"></script>
+<script src="models/bodies.js?v=1795765975"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -376,7 +388,7 @@ function speak(c, line) {
 
 // ================================================================== renderer / scene
 const canvas = $('c');
-const PHONE = matchMedia('(pointer:coarse)').matches && !/[?&]full/.test(location.search); let pxr = Math.min(PHONE ? 1.75 : 2, devicePixelRatio);
+const PHONE = matchMedia('(pointer:coarse)').matches && !/[?&]full/.test(location.search); let pxr = Math.min(PHONE ? 1.5 : 2, devicePixelRatio);
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); renderer.localClippingEnabled = true;
 renderer.setPixelRatio(pxr);
 renderer.shadowMap.enabled = !PHONE; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1112,14 +1124,15 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => { keys[e.code] = false; });
 { // thumb stick: drag to walk, push down to crouch, flick up to jump (walking away from the opponent blocks, as on the keyboard)
   const st = $('stick'), kn = $('knob'); let id = null, wasUp = false;
-  const set = (dx, dy) => { const m = Math.hypot(dx, dy), k = m > 46 ? 46 / m : 1; kn.style.transform = `translate(${dx * k}px,${dy * k}px)`; keys.ArrowLeft = dx < -18; keys.ArrowRight = dx > 18; keys.ArrowDown = dy > 26 && Math.abs(dx) < 46; keys.ArrowUp = dy < -18; window.__stick = [clamp(dx / 46, -1, 1), clamp(dy / 46, -1, 1)]; const up = dy < -30; if (up && !wasUp) pressed.add('ArrowUp'); wasUp = up; };
-  const mv = e => { if (e.pointerId !== id) return; e.preventDefault(); const r = st.getBoundingClientRect(); set(e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2); };
-  const end = e => { if (e.pointerId !== id) return; id = null; wasUp = false; kn.style.transform = ''; keys.ArrowLeft = keys.ArrowRight = keys.ArrowDown = keys.ArrowUp = false; window.__stick = null; };
-  st.addEventListener('pointerdown', e => { id = e.pointerId; st.setPointerCapture(id); mv(e); }); st.addEventListener('pointermove', mv); st.addEventListener('pointerup', end); st.addEventListener('pointercancel', end);
+  const set = (dx, dy) => { const m = Math.hypot(dx, dy), k = m > 46 ? 46 / m : 1; kn.style.transform = `translate(${dx * k}px,${dy * k}px)`; keys.ArrowLeft = dx < -11; keys.ArrowRight = dx > 11; keys.ArrowDown = dy > 26 && Math.abs(dx) < 46; keys.ArrowUp = dy < -18; window.__stick = [clamp(dx / 46, -1, 1), clamp(dy / 46, -1, 1)]; const up = dy < -30; if (up && !wasUp) pressed.add('ArrowUp'); wasUp = up; };
+  let ox = 0, oy = 0; const mv = e => { if (e.pointerId !== id) return; e.preventDefault(); set(e.clientX - ox, e.clientY - oy); };
+  const end = e => { if (e.pointerId !== id) return; id = null; wasUp = false; kn.style.transform = ''; st.style.left = st.style.top = st.style.bottom = ''; keys.ArrowLeft = keys.ArrowRight = keys.ArrowDown = keys.ArrowUp = false; window.__stick = null; };
+  const zone = $('stickZone'), place = e => { ox = e.clientX; oy = e.clientY; st.style.left = clamp(e.clientX - 66, -40, innerWidth * 0.5 - 132) + 'px'; st.style.top = clamp(e.clientY - 66, 50, innerHeight - 96) + 'px'; st.style.bottom = 'auto'; };
+  zone.addEventListener('pointerdown', e => { if (id !== null) return; id = e.pointerId; try { zone.setPointerCapture(id); } catch (x) { } place(e); mv(e); }); zone.addEventListener('pointermove', mv); zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end);
   addEventListener('contextmenu', e => { if (COARSE) e.preventDefault(); });
 }
 document.querySelectorAll('#touch button').forEach(b => {
-  const k = b.dataset.k, dn = e => { e.preventDefault(); keys[k] = true; pressed.add(k); }, up = e => { e.preventDefault(); keys[k] = false; };
+  const k = b.dataset.k, dn = e => { e.preventDefault(); keys[k] = true; pressed.add(k); b.classList.add('dn'); try { navigator.vibrate && navigator.vibrate(8); } catch (x) { } }, up = e => { e.preventDefault(); keys[k] = false; b.classList.remove('dn'); };
   b.addEventListener('pointerdown', dn); b.addEventListener('pointerup', up); b.addEventListener('pointerleave', up); b.addEventListener('pointercancel', up);
 });
 function playerInput() {
@@ -1261,6 +1274,7 @@ function update(f, o, inp) {
   f.t += DT; f.anim = (f.anim || 0) + 1;
   if (f.flash > 0) f.flash -= DT; if (f.bubbleT > 0) f.bubbleT -= DT; if (f.tauntCd > 0) f.tauntCd -= DT; if (f.invT > 0) f.invT -= DT;
   if (f.buf && (f.buf.t -= DT) <= 0) f.buf = null;
+  if (inp.punch) f.buf = { k: 'P', t: 0.3 }; else if (inp.kick) f.buf = { k: 'K', t: 0.3 };
   if (f.parryCd > 0) f.parryCd -= DT; if (f.state === 'block') f.blockAge = (f.blockAge || 0) + DT;
   if (f.state === 'atk') { if (f.tired) f.t -= DT * 0.42; else if (f.key === 'charan') f.t += DT * 0.12; } else if ((f.stam ?? 100) < 100) f.stam = Math.min(100, (f.stam ?? 100) + (game && game.rule === 'tired' ? 8.5 : 17) * DT);      // out of breath: the swing comes out slow; breath comes back when you stop swinging
   f.hpShow = lerp(f.hpShow, f.hp, 0.06);
@@ -1486,7 +1500,7 @@ function ultStep(G) {
   [f, o].forEach(q => { q.t += DT; q.anim = (q.anim || 0) + 1; q.hpShow = lerp(q.hpShow, q.hp, 0.06); if (q.flash > 0) q.flash -= DT; });
   const at = (k, tm) => { if (t >= tm && !u.fired[k]) { u.fired[k] = 1; return true; } return false; };
   const tick = (dmg, y) => { if (host) { o.hp = Math.max(1, o.hp - dmg); o.flash = 0.12; f.hits = (f.hits || 0) + 1; } hitSpark(o.x, y, dir, 1, 0); sfx('hit', 9); G.shake = Math.max(G.shake, 0.22); };
-  const finish = (word, fg, st) => { fxPillar(o.x, 0, '#ffffff', 0.4, 9, 0.3, 0.7, 1.8); [['#ffffff', 0.5, 0.35, 13], [col, 0.6, 0.5, 9]].forEach(([c, r, l, g]) => fxRing(o.x, 0.04, 0, c, r, l, g, 'y')); speedLines(); flash(0.28); impactFrame(60); G.shake = 0.6; G.zoomK = 1; sfx('thud'); sfx('bell');
+  const finish = (word, fg, st) => { fxPillar(o.x, 0, '#ffffff', 0.4, 9, 0.3, 0.7, 1.8); { const bz = fxSprite('burst', col, 4.2, { top: true, rot: Math.random() * 6.28 }); if (bz) PFX(bz, V(o.x, 1.3, 0.6), V(0, 0, 0), 0.22, { grow: 4 }); const mg = fxSprite('magic', col, 3.2); if (mg) { mg.material.rotation = t; PFX(mg, V(o.x, 1.3, 0.5), V(0, 0, 0), 0.5, { grow: 1.5 }); } for (let k = 0; k < 5; k++) dustPuff(o.x + (Math.random() - .5) * 1.5, 0.15, 0.2, (Math.random() - .5) * 4, 0.4 + Math.random(), 0.3, 0.7); } [['#ffffff', 0.5, 0.35, 13], [col, 0.6, 0.5, 9]].forEach(([c, r, l, g]) => fxRing(o.x, 0.04, 0, c, r, l, g, 'y')); speedLines(); flash(0.28); impactFrame(60); G.shake = 0.6; G.zoomK = 1; sfx('thud'); sfx('bell');
     { const s2 = textSprite(word, { size: 70, bg: null, fg, stroke: st }, 0.5); s2.renderOrder = 40; s2.material.depthTest = false; PFX(s2, V(o.x, 2.3, 0.9), V(0, 0.2, 0), 0.9, {}); }
     if (host) { o.state = 'idle'; o.t = 0; hit(f, o, 20, 5, { super: true, launch: true }); if (u.key === 'aman' && o.state === 'ko') amanShatter(o.x, o.y, dir); } u.done = t + 0.7; };
   if (u.key === 'aman') {                               // Aman's design: eight of him fly in and close a ring; each charges an orb; then all eight fire together and hold the beams on the target
@@ -1637,9 +1651,11 @@ function hitSpark(x, y, dir, lvl, up) {                  // dir: the way the blo
   const sz = lvl === 2 ? 1.3 : lvl ? 0.95 : 0.62, P = new THREE.Vector3(x, y, 0.55), Z = new THREE.Vector3();
   const spr = (map, col, rot) => { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map, color: col, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, rotation: rot })); m.renderOrder = 30; return m; };
   const r0 = Math.random() * 6.28;
-  let m = spr(starTex(), c2, r0 + 0.4); m.scale.setScalar(sz * 0.6); PFX(m, P, Z, 0.13 + lvl * 0.03, { grow: 5 });            // coloured burst behind
-  m = spr(starTex(), '#ffffff', r0); m.scale.setScalar(sz * 0.42); PFX(m, P, Z, 0.085 + lvl * 0.015, { grow: 7 });                  // white-hot burst in front
+  let m = spr(FXT.burst || starTex(), c2, r0 + 0.4); m.scale.setScalar(sz * (FXT.burst ? (lvl === 2 ? 0.55 : 0.85) : 0.6)); PFX(m, P, Z, 0.13 + lvl * 0.03, { grow: 5 });            // coloured burst behind
+  m = spr(FXT.flare || starTex(), '#ffffff', FXT.flare ? 0 : r0); m.scale.setScalar(sz * (FXT.flare ? 0.7 : 0.42)); PFX(m, P, Z, 0.085 + lvl * 0.015, { grow: 7 });                  // white-hot burst in front
   { const gl = glowSprite(c2, sz * 0.8); gl.material.opacity = 0.55; PFX(gl, P, Z, 0.11, { grow: 2 }); }
+  if (lvl && !blk) { const sm = fxSprite('smoke', '#c9cfdc', sz * 1.1, { normal: true, op: 0.3, rot: Math.random() * 6.28 }); if (sm) PFX(sm, P, new THREE.Vector3(dir * 0.8, 0.5, 0), 0.5, { grow: 1.7 }); }
+  if (lvl === 2) { const sl = fxSprite('slash', c2, sz * 1.5, { rot: (dir > 0 ? 0 : Math.PI) + (Math.random() - 0.5) * 0.8, top: true }); if (sl) PFX(sl, P, Z, 0.16, { grow: 4 }); }
   const base = up ? Math.PI / 2 : dir > 0 ? 0 : Math.PI, n = 9 + lvl * 7;
   for (let i = 0; i < n; i++) {                                                                                               // sparks thrown the way the blow went
     const back = i % 5 === 4, a = base + (back ? Math.PI : 0) + (Math.random() - 0.5) * (back ? 1.2 : 1.9) + (up ? 0 : 0.25 * dir), sp = (back ? 4 : 7) + Math.random() * (8 + lvl * 4);
@@ -1881,6 +1897,12 @@ function glowTex(color) {
   if (!_glow[color]) _glow[color] = canvasTex(64, 64, g => { const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, '#ffffff'); r.addColorStop(0.3, color); r.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); });
   return _glow[color];
 }
+const FXT = {};
+['burst', 'burst2', 'flare', 'glint', 'ring', 'ringsoft', 'smoke', 'smoke2', 'dirt', 'bolt', 'bolt2', 'slash', 'twirl', 'muzzle', 'flame', 'magic'].forEach(n => new THREE.TextureLoader().load('fx/' + n + '.png', t => { t.colorSpace = THREE.SRGBColorSpace; FXT[n] = t; }, undefined, () => { }));
+function fxSprite(name, col, size, o = {}) {              // one sprite of effect artwork; null if the artwork has not loaded
+  const t = FXT[name]; if (!t) return null; const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, color: col, transparent: true, opacity: o.op === undefined ? 1 : o.op, blending: o.normal ? THREE.NormalBlending : THREE.AdditiveBlending, depthWrite: false, depthTest: !o.top, rotation: o.rot || 0 })); m.scale.set(size * (o.wx || 1), size, 1); if (o.top) m.renderOrder = 30; return m;
+}
+function dustPuff(x, y, z, vx, vy, size, life) { const d = fxSprite(Math.random() < 0.5 ? 'smoke' : 'smoke2', '#b7ad9c', size * 2.6, { normal: true, op: 0.42, rot: Math.random() * 6.28 }) || glowSprite('#d9cfbd', size); return PFX(d, new THREE.Vector3(x, y, z), new THREE.Vector3(vx, vy, 0), life, { grow: 1.9 }); }
 function glowSprite(color, size) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(color), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false })); s.scale.setScalar(size); s.renderOrder = 16; return s; }
 let _pfxK = 0;
 function PFX(obj, pos, vel, life, o = {}) { if (!game) return obj; if (obj.isSprite) { const n = game.fx.length; if (n > (PHONE ? 110 : 420) || (PHONE && n > 45 && (++_pfxK & 1))) { if (obj.material) obj.material.dispose(); return obj; } } obj.position.copy(pos); scene.add(obj); game.fx.push({ type: 'p', obj, v: vel, g: o.g || 0, life, max: life, grow: o.grow || 0, face: !!o.face, spin: o.spin || 0, fade: o.fade !== false, op: obj.material && obj.material.opacity !== undefined ? obj.material.opacity : 1 }); return obj; }
@@ -2078,6 +2100,7 @@ function bolt(x, z, color) {                            // a jagged bolt from th
   const pts = []; let px = x + (Math.random() - .5) * 1.5; for (let i = 0; i <= 9; i++) { const y = 8.5 - i * 0.93; px = i === 9 ? x : px + (Math.random() - .5) * 0.7 + (x - px) * 0.25; pts.push(new THREE.Vector3(px, y, z)); }
   [0.07, 0.03].forEach((wd, k) => { const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.05), 24, wd, 5, false), new THREE.MeshBasicMaterial({ color: k ? '#ffffff' : color, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false })); PFX(m, new THREE.Vector3(0, 0, 0), new THREE.Vector3(), 0.2 + k * 0.05, {}); });
   PFX(glowSprite(color, 0.55), new THREE.Vector3(x, 0.3, z + 0.1), new THREE.Vector3(), 0.18, { grow: 1.5 });
+  { const b = fxSprite(Math.random() < 0.5 ? 'bolt' : 'bolt2', color, 8.6, { wx: 0.34 }); if (b) PFX(b, new THREE.Vector3(x, 4.3, z + 0.05), new THREE.Vector3(), 0.16, {}); const bs = fxSprite('burst2', '#ffffff', 1.5); if (bs) PFX(bs, new THREE.Vector3(x, 0.25, z + 0.12), new THREE.Vector3(), 0.2, { grow: 3 }); }
 }
 function healPuff(f) {
   if (netGate(['hp', f === game.p1 ? 0 : 1])) return;
@@ -2436,13 +2459,14 @@ function speedLines() {
   if (netGate(['sl'])) return;
   const e = $('speed'); if (!e) return; e.style.transition = 'none'; e.style.opacity = 0.85; requestAnimationFrame(() => { e.style.transition = 'opacity .45s'; e.style.opacity = 0; });
 }
-function skid(f) { for (let i = 0; i < 4; i++) PFX(glowSprite('#d9cfbd', 0.16), new THREE.Vector3(f.x + (Math.random() - .5) * 0.3, 0.06, 0.1), new THREE.Vector3(f.facing * (0.6 + Math.random()), 0.5 + Math.random() * 0.5, 0), 0.35, { grow: 2 }); }
+function skid(f) { for (let i = 0; i < 3; i++) dustPuff(f.x + (Math.random() - .5) * 0.3, 0.1, (f.z || 0) + 0.1, f.facing * (0.6 + Math.random()), 0.4 + Math.random() * 0.4, 0.16, 0.4); }
 function landFX(f, imp) {
   if (netGate(['lf', f === game.p1 ? 0 : 1, imp])) return;
   const big = imp > 5; game.shake = Math.max(game.shake, big ? 0.3 : 0.14); sfx('thud');
   const ring = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.4, 40), new THREE.MeshBasicMaterial({ color: '#efe6d2', transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false })); ring.rotation.x = -Math.PI / 2;
   PFX(ring, new THREE.Vector3(f.x, 0.03, 0), new THREE.Vector3(), 0.45, { grow: big ? 5 : 3 });
-  for (let i = 0; i < (big ? 10 : 5); i++) { const a = Math.random() * Math.PI; PFX(glowSprite('#d9cfbd', 0.14), new THREE.Vector3(f.x, 0.08, 0.1), new THREE.Vector3(Math.cos(a) * (1.5 + Math.random() * 2), 1 + Math.random() * 2.2, 0), 0.5, { g: 9 }); }
+  for (let i = 0; i < (big ? 6 : 3); i++) { const a = Math.random() * Math.PI; dustPuff(f.x, 0.12, 0.1, Math.cos(a) * (1.2 + Math.random() * 1.6), 0.3 + Math.random() * 0.7, big ? 0.24 : 0.17, 0.55); }
+  if (big) { const dr = fxSprite('dirt', '#8f8576', 1.3, { normal: true, op: 0.8, rot: Math.random() * 6.28 }); if (dr) PFX(dr, new THREE.Vector3(f.x, 0.5, 0.15), new THREE.Vector3(0, 1.6, 0), 0.4, { grow: 2.2, g: 5 }); }
   
 }
 const BREAK_TEXT = ['THROUGH THE WINDOW!', 'OFF THE ROOF!', 'OUT OF THE RING!'];
@@ -2454,7 +2478,8 @@ function wallBreak(f, o) {                              // launched hard into th
   hitSpark(side * (ARENA_X - 0.1), y, side, 2, 0); flash(0.55); impactFrame(80); speedLines(); G.shake = 0.65; G.hitstop = 0.22; G.zoomK = 1; sfx('thud'); sfx('bell'); showCenter(BREAK_TEXT[from] || 'WALL BREAK!', '#cfe8ff');
   setStage(from + 1);
   if (host) { f.hp = Math.max(1, f.hp - 7); f.x = -side * 3.4; f.y = 1.3; f.vy = 2.6; f.vx = side * 4.2; f.bounced = 0; f.air = 1; f.state = 'down'; f.t = 0.1; o.x = clamp(f.x - side * 2.4, -ARENA_X, ARENA_X); o.vx = 0; }      // they come flying in from the far side of the new place, the other one right behind
-  for (let i = 0; i < 8; i++) PFX(glowSprite('#cfd8ea', 0.2), new THREE.Vector3(-side * (ARENA_X - 0.2), 1 + Math.random(), 0.2), new THREE.Vector3(side * (2 + Math.random() * 3), Math.random() * 2, 0), 0.5, { grow: 1.5 });
+  for (let i = 0; i < 6; i++) dustPuff(-side * (ARENA_X - 0.2), 0.8 + Math.random() * 1.2, 0.2, side * (1.5 + Math.random() * 2.5), Math.random() * 1.2, 0.28, 0.7);
+  { const dr = fxSprite('dirt', '#cfe8ff', 2.2, { rot: Math.random() * 6.28 }); if (dr) PFX(dr, new THREE.Vector3(-side * (ARENA_X - 0.4), 1.5, 0.3), new THREE.Vector3(side * 3, 1, 0), 0.5, { grow: 2.5 }); }
 }
 function wallSplat(f) {
   if (netGate(['ws', f === game.p1 ? 0 : 1])) return;
@@ -2840,12 +2865,12 @@ $('timer').addEventListener('pointerdown', () => { const now = performance.now()
 if (FPSM.on) $('fpsBox').style.display = 'block';
 function fpsMeter(ms) { if (!FPSM.on) return; FPSM.n++; FPSM.sum += ms; FPSM.worst = Math.max(FPSM.worst, ms); if ((FPSM.t += ms) < 500) return; const r = renderer.info.render;
   $('fpsBox').textContent = Math.round(1000 * FPSM.n / FPSM.sum) + ' frames/s   slowest ' + Math.round(FPSM.worst) + ' ms\n' + r.calls + ' draws   ' + Math.round(r.triangles / 1000) + 'k triangles\n' + 'size x' + renderer.getPixelRatio().toFixed(2) + '  ' + renderer.domElement.width + 'x' + renderer.domElement.height + '\n' + (game ? game.fx.length : 0) + ' effects   ' + (PHONE ? 'phone mode' : 'full mode'); FPSM.n = 0; FPSM.sum = 0; FPSM.worst = 0; FPSM.t = 0; }
-const AQ = { n: 0, sum: 0, prev: 0, tried: 0, done: !PHONE, wait: 180 };
+const AQ = { n: 0, sum: 0, prev: 0, tried: 0, done: !PHONE, wait: 60 };
 function adaptQuality(ms) {
   if (AQ.done || !game || game.paused || document.hidden) return; if (AQ.wait > 0) { AQ.wait--; return; }
-  AQ.sum += ms; if (++AQ.n < 90) return; const avg = AQ.sum / AQ.n; AQ.n = 0; AQ.sum = 0;
-  if (AQ.tried && avg > AQ.prev * 0.93) { pxr = AQ.tried; renderer.setPixelRatio(pxr); resize(); AQ.done = true; return; }      // drawing fewer pixels did not help (the phone is capping the rate itself): undo and leave it
-  AQ.tried = 0; if (avg > 21 && pxr > 1.01) { AQ.prev = avg; AQ.tried = pxr; pxr = Math.max(1.0, pxr - 0.25); renderer.setPixelRatio(pxr); resize(); AQ.wait = 30; } else if (avg <= 21) AQ.done = AQ.done || false;
+  AQ.sum += ms; if (++AQ.n < 45) return; const avg = AQ.sum / AQ.n; AQ.n = 0; AQ.sum = 0;
+  if (AQ.tried && avg > AQ.prev * 0.985) { pxr = AQ.tried; renderer.setPixelRatio(pxr); resize(); AQ.done = true; return; }      // drawing fewer pixels did not help (the phone is capping the rate itself): undo and leave it
+  AQ.tried = 0; if (avg > 19.5 && pxr > 1.01) { AQ.prev = avg; AQ.tried = pxr; pxr = Math.max(1.0, pxr - 0.25); renderer.setPixelRatio(pxr); resize(); AQ.wait = 30; } else if (avg <= 21) AQ.done = AQ.done || false;
 }
 function frame(now) {
   const el = Math.min(0.1, (now - last) / 1000); adaptQuality(now - last); fpsMeter(now - last); last = now; time += el;
