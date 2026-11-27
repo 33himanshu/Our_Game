@@ -288,9 +288,9 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 <div id="speed" style="position:fixed;inset:0;pointer-events:none;opacity:0;z-index:6;background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0) 0deg 5deg, rgba(255,255,255,.55) 5deg 6deg);-webkit-mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%);mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%)"></div>
 <script src="mocap.js?v=1795767587"></script>
 <script src="anim.js?v=1795767587"></script>
-<script src="faces.js?v=1795775591"></script>
+<script src="faces.js?v=1795780368"></script>
 <script src="faces_real.js?v=1795767587"></script>
-<script src="models/bodies.js?v=1795775591"></script>
+<script src="models/bodies.js?v=1795780368"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -1241,7 +1241,7 @@ const EMOTES = ['😂', '👍', '😡', '😭', '🙏', '🔥', '😎', '💀'];
 function emote(i, k, fromNet) {
   if (!game || !EMOTES[k]) return; const now = performance.now();
   if (!fromNet) { if (now < (emote.cd || 0)) return; emote.cd = now + 1200; if (net) netSend({ t: 'em', i, k }); }
-  const f = i ? game.p2 : game.p1; f.emo = EMOTES[k]; f.emoEnd = now + 2200; f.emoN = (f.emoN || 0) + 1;
+  const f = i ? game.p2 : game.p1; f.emo = EMOTES[k]; f.emoEnd = now + 2200; f.emoN = (f.emoN || 0) + 1; try { sfx('whoosh', 0.35); } catch (e) { }
 }
 function myEmote(k) { emote(net && net.role === 'guest' ? 1 : 0, k); $('emoTray').classList.add('hidden'); }
 function say(f, line) { if (netGate(['sy', f === game.p1 ? 0 : 1, line])) return; f.bubble = line.r; f.bubbleT = 2.6; speak(f.c, line); }
@@ -1301,7 +1301,7 @@ function update(f, o, inp) {
   if (f.state === 'ko' || f.state === 'win') { f.vx *= 0.9; physics(f); return; }
   if (f.state === 'down' && f.air) {
     const pvy = f.vy, py = f.y; physics(f);
-    if (Math.abs(f.x) >= ARENA_X - 0.001 && Math.abs(f.vx) > 2.2) { if (Math.abs(f.vx) > 3.3 && !game.broke && !game.dom && !game.ult && !game.practice && game.phase === 'fight') wallBreak(f, o); else { f.vx = -f.vx * 0.45; wallSplat(f); } }           // slammed into the edge of the ring
+    if (Math.abs(f.x) >= ARENA_X - 0.001 && Math.abs(f.vx) > 2.2) { { f.vx = -f.vx * 0.45; wallSplat(f); } }   // 27 Nov: no more wall break mid-round; the arena only changes between rounds           // slammed into the edge of the ring
     if (f.y <= 0 && py > 0) {                                                                               // came down
       const imp = Math.abs(pvy); landFX(f, imp);
       if (!f.bounced && imp > 4.2) { f.bounced = 1; f.y = 0.02; f.vy = imp * 0.38; f.vx *= 0.55; } else { f.air = 0; f.t = 0.5; f.vx *= 0.5; }
@@ -2544,7 +2544,7 @@ function updateHUD() {
     if (on) {
       if (!b) { b = document.createElement('div'); b.id = 'emo' + i; b.className = 'emote'; b.dataset.n = f.emoN; b.textContent = f.emo; document.body.appendChild(b); }
       const hp = (f.head || f.bones.Head).getWorldPosition(new THREE.Vector3()); hp.y += f.head ? 0.3 : 0.38; const [x, y] = toScreen(hp);
-      b.style.left = clamp(x, 40, innerWidth - 40) + 'px'; b.style.top = Math.max(110, y) + 'px';
+      b.style.left = clamp(x, 40, innerWidth - 40) + 'px'; b.style.top = Math.max(110, y) + 'px'; b.style.display = $('cut').classList.contains('hidden') ? '' : 'none';   // not over the big move banners
     }
   });
   // speech bubbles above the heads
@@ -2809,7 +2809,7 @@ function sendSnap() {
   if (now - (net.sentT || 0) < (urgent ? 33 : 50)) return;                            // 20 a second, 30 when there are effects to pass on
   if (net.conn.buffered && net.conn.buffered() > 8000 && now - (net.sentT || 0) < 250) return;   // the line is backed up: skip rather than queue, so delay cannot pile up
   net.sentT = now; const r = v => typeof v === 'number' ? Math.round(v * 1000) / 1000 : v, f = x => { const o = {}; SNAP.forEach(k => o[k] = r(x[k])); return o; };
-  netSend({ t: 's', n: (net.sn = (net.sn || 0) + 1), g: { phase: G.phase, t: r(G.t), time: G.time, round: G.round, wins: G.wins, roundLabel: G.roundLabel, rule: G.rule || '', matchOver: !!G.matchOver, shake: r(G.shake), w: G.winner ? (G.winner === G.p1 ? 0 : 1) : null }, f: [f(G.p1), f(G.p2)], ev: net.ev });
+  netSend({ t: 's', n: (net.sn = (net.sn || 0) + 1), g: { phase: G.phase, t: r(G.t), time: G.time, round: G.round, wins: G.wins, roundLabel: G.roundLabel, rule: G.rule || '', matchOver: !!G.matchOver, left: G.matchOver ? (G.left || null) : undefined, shake: r(G.shake), w: G.winner ? (G.winner === G.p1 ? 0 : 1) : null }, f: [f(G.p1), f(G.p2)], ev: net.ev });
   net.ev = [];
 }
 function guestStep() {
@@ -2822,6 +2822,7 @@ function guestStep() {
   if (s && net.fresh) {                                                              // a new state has arrived
     net.fresh = false; net.gap = lerp(net.gap || 50, clamp(now - (net.snapT || now - 50), 30, 150), 0.25); net.snapT = now;
     if (s.g.round !== G.round) { clearFX(); setStage(s.g.round - 1); [G.p1, G.p2].forEach(f => { f.tilt.rotation.set(0, 0, 0); f.tilt.position.set(0, 0, 0); f.it = undefined; }); }
+    if (s.g.left) G.left = s.g.left;                          // so both screens show the same end score
     Object.assign(G, { phase: s.g.phase, t: s.g.t, time: s.g.time, round: s.g.round, wins: s.g.wins, roundLabel: s.g.roundLabel, rule: s.g.rule || null, matchOver: s.g.matchOver, shake: s.g.shake });
     G.winner = s.g.w === null ? null : [G.p1, G.p2][s.g.w];
     [G.p1, G.p2].forEach((f, i) => { const o = s.f[i], was = f.state, wasMv = f.moveName, lt = f.t, la = f.anim, x0 = f.x, y0 = f.y; SNAP.forEach(k => f[k] = o[k]); f.move = o.moveName ? MOVES[o.moveName] : null; if (f.state === 'super' && was !== 'super') f.fired = {};
@@ -2863,15 +2864,33 @@ function netReady(role, conn) {
 }
 // Friend play goes through the game's own server (a relay), so it works on any network; the old direct link is only a fallback.
 let RELAY_HTTP = location.port === '8777' ? 'http://127.0.0.1:8788' : location.origin;
+{ const q = new URLSearchParams(location.search); if (q.get('relay')) RELAY_HTTP = q.get('relay').replace(/\/$/, ''); if (q.has('nodirect')) window.__noDirect = true; }   // test switches
 // served from a plain file host (GitHub Pages)? Then the friend-play relay lives somewhere else: relay.json says where
 const RELAY_READY = /github\.io$/.test(location.hostname) ? fetch('relay.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.url) RELAY_HTTP = j.url.replace(/\/$/, ''); }).catch(() => { }) : Promise.resolve();
 function relayConn(code, role, onReady, onOpen, onNoRoom, onFail) {
   let ws; try { ws = new WebSocket(RELAY_HTTP.replace(/^http/, 'ws') + '/ws?room=' + code + '&role=' + role); } catch (e) { onFail(); return null; }
-  const h = {}, c = { open: false, relay: true, buffered: () => ws.bufferedAmount || 0, send: o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); }, on: (ev, fn) => { (h[ev] = h[ev] || []).push(fn); }, close: () => ws.close() };
+  const h = {}, wsSend = o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); }, live = () => c.dc && c.dc.readyState === 'open';
+  const c = { open: false, relay: true, dc: null, get direct() { return !!live(); }, buffered: () => live() ? c.dc.bufferedAmount || 0 : ws.bufferedAmount || 0, send: o => { if (live()) { try { c.dc.send(JSON.stringify(o)); return; } catch (x) { } } wsSend(o); }, on: (ev, fn) => { (h[ev] = h[ev] || []).push(fn); }, close: () => { try { c.pc && c.pc.close(); } catch (x) { } ws.close(); } };
+  const deliver = m => { if (window.__lag) setTimeout(() => (h.data || []).forEach(f => f(m)), window.__lag()); else (h.data || []).forEach(f => f(m)); };
+  // The relay is the safe road but a slow one (every message crosses the internet twice). Once both players are in, try a straight
+  // browser-to-browser link, arranged through the relay; if the networks allow it the game moves onto it, otherwise nothing changes.
+  const rtc = msg => {
+    if (!window.RTCPeerConnection || window.__noDirect) return;
+    try {
+      if (!c.pc) { const pc = c.pc = new RTCPeerConnection({ iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] }] });
+        pc.onicecandidate = e => { if (e.candidate) wsSend({ t: 'rtc', ice: e.candidate }); };
+        const wire = dc => { dc.onopen = () => { c.dc = dc; }; dc.onclose = dc.onerror = () => { if (c.dc === dc) c.dc = null; }; dc.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (x) { return; } deliver(m); }; };
+        if (role === 'host') { wire(pc.createDataChannel('g', { ordered: true })); pc.createOffer().then(o => pc.setLocalDescription(o)).then(() => wsSend({ t: 'rtc', sdp: pc.localDescription })).catch(() => { }); }
+        else pc.ondatachannel = e => wire(e.channel);
+      }
+      if (msg && msg.sdp) { const pc = c.pc; pc.setRemoteDescription(msg.sdp).then(() => msg.sdp.type === 'offer' ? pc.createAnswer().then(a => pc.setLocalDescription(a)).then(() => wsSend({ t: 'rtc', sdp: pc.localDescription })) : null).catch(() => { }); }
+      else if (msg && msg.ice) c.pc.addIceCandidate(msg.ice).catch(() => { });
+    } catch (x) { }
+  };
   let ready = false;
   ws.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (x) { return; }
-    if (m.t === '_ready') { ready = true; onReady && onReady(c); } else if (m.t === '_open') { c.open = true; onOpen(c); } else if (m.t === '_noroom') { ready = true; onNoRoom && onNoRoom(); }
-    else if (m.t === '_close') { c.open = false; (h.close || []).forEach(f => f()); } else if (window.__lag) setTimeout(() => (h.data || []).forEach(f => f(m)), window.__lag()); else (h.data || []).forEach(f => f(m)); };
+    if (m.t === '_ready') { ready = true; onReady && onReady(c); } else if (m.t === '_open') { c.open = true; onOpen(c); if (role === 'host') rtc(); } else if (m.t === 'rtc') rtc(m); else if (m.t === '_noroom') { ready = true; onNoRoom && onNoRoom(); }
+    else if (m.t === '_close') { c.open = false; (h.close || []).forEach(f => f()); } else deliver(m); };
   ws.onclose = () => { if (!ready) onFail(); else if (c.open) { c.open = false; (h.close || []).forEach(f => f()); } };
   ws.onerror = () => {};
   return c;
@@ -3011,7 +3030,7 @@ new GLTFLoader().setDRACOLoader(DRACO).parse(b64ToBuf(window.XBOT_B64), '', gltf
       const figs = ['crowdA', 'crowdB', 'crowdC'].map(get).filter(Boolean);
       if (figs.length && C) {
         const pickFig = () => { const r = Math.random(); return r < 0.6 ? 0 : r < 0.8 ? 1 % figs.length : 2 % figs.length; }, lists = figs.map(() => []);
-        C.crowd.forEach(c => lists[pickFig()].push(c)); const tints = ['#3a2a3e', '#24304f', '#3d3a2a', '#213d38', '#33284a', '#4a4d5c', '#402c24', '#1f3a44'];
+        C.crowd.forEach((c, i) => { if (PHONE && i % 2) return; lists[pickFig()].push(c); });   // phones draw half the crowd const tints = ['#3a2a3e', '#24304f', '#3d3a2a', '#213d38', '#33284a', '#4a4d5c', '#402c24', '#1f3a44'];
         C.inst = figs.map((fg, k) => { let geo = null; fg.traverse(q => { if (q.isMesh && !geo) geo = q.geometry.clone().applyMatrix4(q.matrixWorld); }); geo.translate(-(6 + k * 1.4), 0, 0); geo.computeVertexNormals();
           const im = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, metalness: 0 }), Math.max(1, lists[k].length)); im.frustumCulled = false;
           lists[k].forEach((c, ii) => { c.im = im; c.ii = ii; c.s = 0.78 + Math.random() * 0.1; im.setColorAt(ii, new THREE.Color(pick(tints)).multiplyScalar(0.2)); }); im.count = lists[k].length; if (im.instanceColor) im.instanceColor.needsUpdate = true; arena.add(im); return im; });
