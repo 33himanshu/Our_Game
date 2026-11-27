@@ -288,7 +288,7 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 <div id="speed" style="position:fixed;inset:0;pointer-events:none;opacity:0;z-index:6;background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0) 0deg 5deg, rgba(255,255,255,.55) 5deg 6deg);-webkit-mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%);mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%)"></div>
 <script src="mocap.js?v=1795767587"></script>
 <script src="anim.js?v=1795767587"></script>
-<script src="anim_mx.js?v=1795786719"></script>
+<script src="anim_mx.js?v=1795788880"></script>
 <script src="faces.js?v=1795786719"></script>
 <script src="faces_real.js?v=1795767587"></script>
 <script src="models/bodies.js?v=1795786719"></script>
@@ -892,11 +892,18 @@ const _uq1 = new THREE.Quaternion(), _uq2 = new THREE.Quaternion(), _uR = new TH
 const _mq1 = new THREE.Quaternion(), _mq2 = new THREE.Quaternion();
 const MX = !!(window.ANIM && ANIM.clips.mx_jab) && !/[?&]mx=0/.test(location.search);          // animator-made fight clips (anim_mx.js); ?mx=0 shows the old movement
 const MXMAP = { jab: 'mx_jab', cross: 'mx_cross', upper: 'mx_upper', dashpunch: 'mx_dash', kick: 'mx_kick', kick2: 'mx_kick2', flykick: 'mx_fly', sweep: 'mx_sweep' };
-const MXVAR = { himanshu: { cross: 'mx_hook' }, aman: { cross: 'mx_elbow', kick: 'mx_side' }, charan: {} };   // each fighter throws some moves his own way
+const MXBLOCK = /[?&]blk=B/.test(location.search) ? 'mx_blockB' : 'mx_blockA';
+const MXVAR = { himanshu: { cross: 'mx_hook' }, aman: { cross: 'mx_elbow', kick: 'mx_side' }, charan: { cross: 'mx_combo' } };   // each fighter throws some moves his own way
 function mxClip(f) { if (!(MX && f.state === 'atk' && f.moveName)) return null; const k = (MXVAR[f.key] || {})[f.moveName] || MXMAP[f.moveName]; return k ? ANIM.clips[k] || ANIM.clips[MXMAP[f.moveName]] || null : null; }
 function mxLimb(f) { const c = mxClip(f); if (!c || !c.limb) return null; return /Hand/.test(c.limb) && f.gloves ? f.gloves[c.limb === 'LeftHand' ? 0 : 1] : f.bones[c.limb]; }
 function animFor(f) {
-  const C = ANIM.clips, s = f.state, t = f.t, st = { c: C.stance, u: 0 };
+  const C = ANIM.clips, s = f.state, t = f.t, st = (MX && C.mx_idle) ? { c: C.mx_idle, u: 0 } : { c: C.stance, u: 0 };
+  if (MX && C.mx_idle && (s === 'idle' || s === 'walk')) {            // each fighter has his own way of standing; walking keeps it going above the legs
+    const ic = f.key === 'himanshu' ? C.mx_idleH : C.mx_idle, base = { c: ic, u: (f.anim || 0) / 60 * (f.key === 'charan' ? 1.35 : 1) };
+    if (s === 'idle') return { base };
+    f.walkU = (f.walkU || 0) + DT * 1.3 * (f.vx * f.facing >= 0 ? 1 : -1); return { base, over: { c: C.walk, u: f.walkU }, mask: A_LEGS };
+  }
+  if (MX && C[MXBLOCK] && s === 'block') return f.crouchBlock ? { base: { c: C.crouch, u: 0 }, over: { c: C[MXBLOCK], u: 0 }, mask: A_UPPER } : { base: { c: C[MXBLOCK], u: 0 } };
   if (MX && s === 'atk' && f.move) { const c = mxClip(f); if (c) { const mv = f.move, fly = f.moveName === 'flykick'; return { base: { c, u: aWarp(c, t, mv) }, fast: 1, lunge: fly ? 0 : (mv.lunge || 0.1) * 0.9 * env(t, mv.a * 0.7, mv.b, mv.dur) }; } }
   if (MX && s === 'hit') { const hi = f.hitHi !== 0, c = hi ? C.mx_hith : (f.stun > 0.42 ? C.mx_hitB : C.mx_hitb), k = t < 0.045 ? t / 0.045 : Math.pow(Math.max(0, 1 - (t - 0.045) / 0.3), 1.6); return { base: { c, u: Math.min(t * 1.5 + 0.04, aLen(c) * 0.6) }, fast: 1, lunge: -0.12 * k }; }
   if (MX && s === 'down' && C.mx_fall) return t < 0.5 ? { base: { c: C.mx_fall, u: t / 0.5 * aLen(C.mx_fall) }, fast: 1 } : t < 0.8 ? { base: { c: C.mx_fall, u: 99 } } : { base: { c: C.mx_getup, u: (t - 0.8) / 0.8 * aLen(C.mx_getup) }, fast: 1 };
@@ -1881,7 +1888,7 @@ function syncFighter(f) {
   if (!f.rimDone && f.mats) { f.rimDone = 1; f.mats.forEach(addRim); }
   if (PHONE) { if (!f.blob) { f.blob = new THREE.Mesh(sharedGeo('blob', () => new THREE.CircleGeometry(0.5, 20)), new THREE.MeshBasicMaterial({ map: glowTex('#000000'), color: '#000000', transparent: true, opacity: 0.55, depthWrite: false })); f.blob.rotation.x = -Math.PI / 2; f.blob.renderOrder = 4; scene.add(f.blob); } f.blob.position.set(f.x, 0.03, f.z || 0); f.blob.scale.setScalar(Math.max(0.5, 1 - f.y * 0.35)); f.blob.visible = f.root.visible; }   // a soft dark patch under the feet stands in for the real shadow
   f.root.position.set(f.x + ((game && game.hitstop > 0 && (f.state === 'hit' || (f.state === 'down' && f.t < 0.06))) ? Math.sin(performance.now() / 11) * 0.03 : 0), f.y, f.z || 0);
-  const turn = (f.state === 'atk' && f.move && !f.move.grab) ? 0.3 : f.real ? 0.92 : 0.42;   // real bodies stand three-quarters to the camera, like the reference games
+  const turn = (f.state === 'atk' && f.move && !f.move.grab) ? 0.3 : (MX && f.facing > 0 && f.real) ? 0.3 : f.real ? 0.92 : 0.42;   // real bodies stand three-quarters to the camera, like the reference games
   const targetRot = f.yaw !== undefined ? f.yaw : f.facing > 0 ? Math.PI / 2 - turn : -Math.PI / 2 + turn;
   f.root.rotation.y = lerp(f.root.rotation.y, targetRot, 0.35);
   // falling over on a KO
