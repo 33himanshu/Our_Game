@@ -74,3 +74,13 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). In short: make a branch, open a pull req
 - Himanshu still heals and gets back up. He stays down only to a parry critical or inside the other fighter's domain.
 - **Longer matches.** A match is now first to three rounds. From round two, each round is played under its own rule (double super bar, heavy hands, low gravity, pickup rain, long sprint, regrade round), shown under the clock.
 - **Ultimates** for Himanshu and Charan are built like Aman's, with real copies of the fighter: a bench of Himanshus shouting from both sides, and a crowd of Charans running in and slipping.
+
+## Walk the office
+
+On the menu, **WALK THE OFFICE** drops your fighter into the office at 3 AM. Move with A/D/W/S, the arrow keys or the thumb stick, and press J (PUNCH on a phone) next to something to use it.
+
+- **Your two teammates** stand by their desks. Walk up and challenge them; a win pays 60 chai points.
+- **The chai machine:** 80 points for a full super bar at the start of your next fight.
+- **The practice dummy:** an opponent who does not fight back and cannot be knocked out, with the moves listed on screen.
+- **The arcade cabinet:** two computer fighters go at it while you bet 50.
+- **The lead's cabin** is locked until you have beaten both teammates. Inside is Final QC: the hardest opponent, who takes a quarter less damage. Winning pays 300.
