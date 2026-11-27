@@ -8,3 +8,4 @@
 - Look reference only (not shipped): "Mahito Domain Expansion Workshop Showcase" GIFs.
 
 - Giant with the wheel for Aman's domain: model made by Himanshu (the repository owner), converted with the `convert_maho.py` script. The creature's design comes from Jujutsu Kaisen and belongs to its owners; this is a non-commercial fan use.
+- Hit sounds: "37 hits/punches" by Independent.nu on OpenGameArt (https://opengameart.org/content/37-hitspunches), CC0 (public domain). Thirteen picked, trimmed and converted.

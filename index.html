@@ -258,14 +258,14 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 </div>
 <div id="rot"><div>↻</div>Turn your phone sideways to play</div>
 
-<script src="models/xbot.js?v=1795761156"></script>
+<script src="models/xbot.js?v=1795762248"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <div id="speed" style="position:fixed;inset:0;pointer-events:none;opacity:0;z-index:6;background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0) 0deg 5deg, rgba(255,255,255,.55) 5deg 6deg);-webkit-mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%);mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%)"></div>
-<script src="mocap.js?v=1795761156"></script>
-<script src="anim.js?v=1795761156"></script>
-<script src="faces.js?v=1795761156"></script>
-<script src="faces_real.js?v=1795761156"></script>
-<script src="models/bodies.js?v=1795761156"></script>
+<script src="mocap.js?v=1795762248"></script>
+<script src="anim.js?v=1795762248"></script>
+<script src="faces.js?v=1795762248"></script>
+<script src="faces_real.js?v=1795762248"></script>
+<script src="models/bodies.js?v=1795762248"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -1126,9 +1126,18 @@ function beatTick() {                                   // a drum and bass line 
     _beat.next += d;
   }
 }
+const SMP = {}, SMP_SETS = { light: ['light1', 'light2', 'light3', 'light4'], heavy: ['heavy1', 'heavy2', 'heavy3', 'heavy4'], big: ['big1', 'big2', 'big3'], block: ['block1', 'block2'] }; let _smpLoad = false;
+function loadSamples(a) {                               // recorded punches (CC0); the generated sounds stay as the fallback
+  if (_smpLoad) return; _smpLoad = true;
+  Object.values(SMP_SETS).flat().forEach(n => fetch('sfx/' + n + '.m4a').then(r => r.ok ? r.arrayBuffer() : null).then(b => b && a.decodeAudioData(b, buf => { SMP[n] = buf; }, () => { })).catch(() => { }));
+}
+function playSample(a, set, gain, rate) { const names = SMP_SETS[set].filter(n => SMP[n]); if (!names.length) return false; const src = a.createBufferSource(), g = a.createGain(); src.buffer = SMP[names[Math.floor(Math.random() * names.length)]]; src.playbackRate.value = rate * (0.92 + Math.random() * 0.16); g.gain.value = gain; src.connect(g); g.connect(a.destination); src.start(); return true; }
 function sfx(kind, amt = 6) {
   if (netGate(['sx', kind, amt])) return;
-  if (muted) return; const a = audio(); if (!a) return; const t = a.currentTime;
+  if (muted) return; const a = audio(); if (!a) return; const t = a.currentTime; loadSamples(a);
+  if (kind === 'hit' && playSample(a, amt >= 16 ? 'big' : amt >= 9 ? 'heavy' : 'light', amt >= 16 ? 0.95 : amt >= 9 ? 0.8 : 0.6, amt >= 16 ? 0.9 : 1)) {       // a real punch, with a low thump under the heavier ones
+    if (amt >= 9) { const o = a.createOscillator(), g = a.createGain(); o.frequency.setValueAtTime(80, t); o.frequency.exponentialRampToValueAtTime(30, t + 0.28); g.gain.setValueAtTime(Math.min(0.7, 0.3 + amt / 40), t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.32); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + 0.34); } return; }
+  if (kind === 'block' && playSample(a, 'block', 0.5, 1.25)) return;
   if (kind === 'hit' && amt >= 9) { const o = a.createOscillator(), g = a.createGain(); o.frequency.setValueAtTime(75, t); o.frequency.exponentialRampToValueAtTime(28, t + 0.3); g.gain.setValueAtTime(Math.min(0.9, 0.4 + amt / 30), t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.34); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + 0.36);
     const n = noise(a, 0.2), f = a.createBiquadFilter(), g2 = a.createGain(); f.type = 'lowpass'; f.frequency.value = 520; g2.gain.value = 0.5; n.connect(f); f.connect(g2); g2.connect(a.destination); n.start(t); }      // a heavy blow has weight under it
   const out = a.createGain(); out.connect(a.destination);
@@ -2650,7 +2659,7 @@ function relayConn(code, role, onReady, onOpen, onNoRoom, onFail) {
   ws.onerror = () => {};
   return c;
 }
-function roomMsg(code, base) { const link = base.replace(/\/$/, '') + (base.includes('trycloudflare') || !location.pathname.includes('/v3/') ? '/' : location.pathname) + '?room=' + code;
+function roomMsg(code, base) { const link = base.replace(/\/$/, '') + (base.includes('trycloudflare') ? '/' : location.pathname.replace(/[^\/]*$/, '')) + '?room=' + code;
   $('netMsg').innerHTML = 'ROOM CODE: <b style="font-size:44px;letter-spacing:6px;color:#fff">' + code + '</b><br>Send your friend this link:<br><span id="roomLink" style="color:#fff;user-select:all;-webkit-user-select:all;word-break:break-all">' + link + '</span><br><button id="copyLink" style="margin-top:8px">COPY LINK</button><br>Waiting for your friend…';
   $('copyLink').onclick = () => { try { navigator.clipboard.writeText(link); $('copyLink').textContent = 'COPIED'; } catch (e) {} }; }
 function hostRoom() {
@@ -2774,7 +2783,7 @@ new GLTFLoader().setDRACOLoader(DRACO).parse(b64ToBuf(window.XBOT_B64), '', gltf
   keys.forEach(k => new GLTFLoader().setDRACOLoader(DRACO).parse(b64ToBuf(window.MODEL_B64[k]), '', g => { BODIES[k] = g; if (--left === 0) done(); },
     e => { console.warn('body ' + k + ' failed, using the stand-in', e); if (--left === 0) done(); }));
 }, err => { $('loading').textContent = 'Could not load the fighters: ' + err; });
-window.__dbg = { get game() { return game; }, get net() { return net; }, CHARS, hit, startSuper, startMove, camera, THREE, worldEvent, renderer, scene, startDomain, startClash, ko, startUlt };
+window.__dbg = { get game() { return game; }, get net() { return net; }, CHARS, hit, startSuper, startMove, camera, THREE, worldEvent, renderer, scene, startDomain, startClash, ko, startUlt, samples: () => Object.keys(SMP).length + " of 13" };
 </script>
 </body>
 </html>
