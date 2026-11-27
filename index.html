@@ -258,14 +258,14 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 </div>
 <div id="rot"><div>↻</div>Turn your phone sideways to play</div>
 
-<script src="models/xbot.js?v=1795762248"></script>
+<script src="models/xbot.js?v=1795763306"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <div id="speed" style="position:fixed;inset:0;pointer-events:none;opacity:0;z-index:6;background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0) 0deg 5deg, rgba(255,255,255,.55) 5deg 6deg);-webkit-mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%);mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%)"></div>
-<script src="mocap.js?v=1795762248"></script>
-<script src="anim.js?v=1795762248"></script>
-<script src="faces.js?v=1795762248"></script>
-<script src="faces_real.js?v=1795762248"></script>
-<script src="models/bodies.js?v=1795762248"></script>
+<script src="mocap.js?v=1795763306"></script>
+<script src="anim.js?v=1795763306"></script>
+<script src="faces.js?v=1795763306"></script>
+<script src="faces_real.js?v=1795763306"></script>
+<script src="models/bodies.js?v=1795763306"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -2647,7 +2647,9 @@ function netReady(role, conn) {
   netSend({ t: 'pick', side: role === 'host' ? 'p1' : 'p2', k: sel[role === 'host' ? 'p1' : 'p2'] });
 }
 // Friend play goes through the game's own server (a relay), so it works on any network; the old direct link is only a fallback.
-const RELAY_HTTP = location.port === '8777' ? 'http://127.0.0.1:8788' : location.origin;
+let RELAY_HTTP = location.port === '8777' ? 'http://127.0.0.1:8788' : location.origin;
+// served from a plain file host (GitHub Pages)? Then the friend-play relay lives somewhere else: relay.json says where
+const RELAY_READY = /github\.io$/.test(location.hostname) ? fetch('relay.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.url) RELAY_HTTP = j.url.replace(/\/$/, ''); }).catch(() => { }) : Promise.resolve();
 function relayConn(code, role, onReady, onOpen, onNoRoom, onFail) {
   let ws; try { ws = new WebSocket(RELAY_HTTP.replace(/^http/, 'ws') + '/ws?room=' + code + '&role=' + role); } catch (e) { onFail(); return null; }
   const h = {}, c = { open: false, relay: true, buffered: () => ws.bufferedAmount || 0, send: o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); }, on: (ev, fn) => { (h[ev] = h[ev] || []).push(fn); }, close: () => ws.close() };
@@ -2662,7 +2664,8 @@ function relayConn(code, role, onReady, onOpen, onNoRoom, onFail) {
 function roomMsg(code, base) { const link = base.replace(/\/$/, '') + (base.includes('trycloudflare') ? '/' : location.pathname.replace(/[^\/]*$/, '')) + '?room=' + code;
   $('netMsg').innerHTML = 'ROOM CODE: <b style="font-size:44px;letter-spacing:6px;color:#fff">' + code + '</b><br>Send your friend this link:<br><span id="roomLink" style="color:#fff;user-select:all;-webkit-user-select:all;word-break:break-all">' + link + '</span><br><button id="copyLink" style="margin-top:8px">COPY LINK</button><br>Waiting for your friend…';
   $('copyLink').onclick = () => { try { navigator.clipboard.writeText(link); $('copyLink').textContent = 'COPIED'; } catch (e) {} }; }
-function hostRoom() {
+function hostRoom() { RELAY_READY.then(hostRoom0); }
+function hostRoom0() {
   const code = Array.from({ length: 4 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random() * 24)]).join('');
   netStatus('Opening room…'); net = { role: 'host', code };
   relayConn(code, 'host',
@@ -2677,7 +2680,8 @@ function hostRoomPeer(code) {                  // fallback: direct browser-to-br
   peer.on('connection', c => { let done = false; const go = () => { if (!done) { done = true; netReady('host', c); } }; if (c.open) go(); else { c.on('open', go); c.on('data', go); } });
   peer.on('error', e => { netStatus('Could not open the room: ' + e.type); net = null; });
 }
-function joinRoom(code) {
+function joinRoom(code) { RELAY_READY.then(() => joinRoom0(code)); }
+function joinRoom0(code) {
   code = (code || '').toUpperCase().trim(); if (code.length !== 4) return netStatus('Type the 4-letter room code.');
   netStatus('Joining room ' + code + '…'); net = { role: 'guest', code };
   relayConn(code, 'guest', null, c => netReady('guest', c),
