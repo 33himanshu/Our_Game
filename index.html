@@ -276,14 +276,14 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
 </div>
 <div id="rot"><div>↻</div>Turn your phone sideways to play</div>
 
-<script src="models/xbot.js?v=1795767020"></script>
+<script src="models/xbot.js?v=1795767587"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <div id="speed" style="position:fixed;inset:0;pointer-events:none;opacity:0;z-index:6;background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0) 0deg 5deg, rgba(255,255,255,.55) 5deg 6deg);-webkit-mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%);mask-image:radial-gradient(circle at 50% 50%, transparent 0 32%, #000 70%)"></div>
-<script src="mocap.js?v=1795767020"></script>
-<script src="anim.js?v=1795767020"></script>
-<script src="faces.js?v=1795767020"></script>
-<script src="faces_real.js?v=1795767020"></script>
-<script src="models/bodies.js?v=1795767020"></script>
+<script src="mocap.js?v=1795767587"></script>
+<script src="anim.js?v=1795767587"></script>
+<script src="faces.js?v=1795767587"></script>
+<script src="faces_real.js?v=1795767587"></script>
+<script src="models/bodies.js?v=1795767587"></script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
@@ -393,7 +393,7 @@ const PHONE = matchMedia('(pointer:coarse)').matches && !/[?&]full/.test(locatio
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); renderer.localClippingEnabled = true;
 renderer.setPixelRatio(pxr);
 renderer.shadowMap.enabled = !PHONE; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.3;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.16;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#060818');
@@ -437,10 +437,10 @@ const monitorTex = [];
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 40), std('#121528', { roughness: 0.95 }));
   floor.rotation.x = -Math.PI / 2; floor.position.y = -0.3; floor.receiveShadow = true; arena.add(floor);
   const carpet = canvasTex(1024, 512, (g, w, h) => {
-    g.fillStyle = '#23294a'; g.fillRect(0, 0, w, h);
-    for (let i = 0; i < 16; i++) { g.fillStyle = i % 2 ? '#262d52' : '#1f2544'; g.fillRect(i * w / 16, 0, w / 16, h); }
+    g.fillStyle = '#151a33'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 16; i++) { g.fillStyle = i % 2 ? '#181d3a' : '#12162c'; g.fillRect(i * w / 16, 0, w / 16, h); }
     g.strokeStyle = '#ffcc00'; g.lineWidth = 10; g.strokeRect(14, 14, w - 28, h - 28);
-    g.globalAlpha = .18; g.fillStyle = '#ffcc00'; g.font = '700 150px Oswald, Impact'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.globalAlpha = .07; g.fillStyle = '#ffcc00'; g.font = '700 150px Oswald, Impact'; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillText('QC SHOWDOWN', w / 2, h / 2); g.globalAlpha = 1;
   });
   const plat = new THREE.Mesh(new THREE.BoxGeometry(11, 0.28, 4.2), [std('#1a1e36'), std('#1a1e36'), std('#ffffff', { map: carpet, roughness: 0.9 }), std('#1a1e36'), std('#1a1e36'), std('#1a1e36')]);
@@ -494,7 +494,7 @@ const monitorTex = [];
   for (let r = 0; r < rows; r++) for (let k = 0; k < per; k++) {
     const i = r * per + k, x = -13 + k * 1.04 + (r % 2) * 0.5, y = 0.75 + r * 0.55, z = -6.1 - r * 0.75;
     crowd.push({ x, y, z, ph: Math.random() * 6, amp: 0.04 + Math.random() * 0.08 });
-    bodyM.setColorAt(i, new THREE.Color(pick(shirts)).multiplyScalar(0.42)); headM.setColorAt(i, new THREE.Color(pick(skins)).multiplyScalar(0.5));   // a crowd in shadow: shapes, not coloured pills
+    bodyM.setColorAt(i, new THREE.Color(pick(shirts)).multiplyScalar(0.13)); headM.setColorAt(i, new THREE.Color(pick(skins)).multiplyScalar(0.16));   // a crowd in shadow: shapes, not coloured pills
   }
   for (let r = 0; r < rows; r++) { const step = new THREE.Mesh(new THREE.BoxGeometry(30, 0.4, 0.75), std('#161a30')); step.position.set(0, 0.2 + r * 0.55, -6.1 - r * 0.75); arena.add(step); }
   arena.add(bodyM, headM); window.__crowd = { bodyM, headM, crowd };
@@ -508,8 +508,8 @@ const monitorTex = [];
   }
   window.__placards = placards;
   // lights
-  const hemi = new THREE.HemisphereLight(HEMI_COL, '#1a1226', 0.85); scene.add(hemi); window.__hemi = hemi; if (matchMedia('(pointer:coarse)').matches) hemi.intensity = 1.0;
-  const key = new THREE.DirectionalLight('#fff0dc', 1.85); key.position.set(3, 8, 6); key.castShadow = true; window.__key = key;
+  const hemi = new THREE.HemisphereLight(HEMI_COL, '#1a1226', 0.5); scene.add(hemi); window.__hemi = hemi; if (matchMedia('(pointer:coarse)').matches) hemi.intensity = 0.62;
+  const key = new THREE.DirectionalLight('#fff0dc', 2.7); key.position.set(3, 8, 6); key.castShadow = true; window.__key = key;
   key.shadow.mapSize.set(PHONE ? 1024 : 2048, PHONE ? 1024 : 2048); Object.assign(key.shadow.camera, { left: -7, right: 7, top: 6, bottom: -2, near: 1, far: 25 }); key.shadow.bias = -0.0004;
   scene.add(key);
   if (!PHONE) {
@@ -518,7 +518,7 @@ const monitorTex = [];
   } else {                                              // phones: two plain coloured back lights stand in for the spotlights (they cost almost nothing)
     const bl = new THREE.DirectionalLight('#39c6ff', 1.5); bl.position.set(-6, 5, -4.5); const br = new THREE.DirectionalLight('#ff2a3a', 1.5); br.position.set(6, 5, -4.5); scene.add(bl, br);
   }
-  const fill = new THREE.DirectionalLight('#dfe6ff', 0.95); fill.position.set(-1, 2.2, 9); scene.add(fill);   // front fill: faces and dark clothes read clearly
+  const fill = new THREE.DirectionalLight('#dfe6ff', 0.45); fill.position.set(-1, 2.2, 9); scene.add(fill);   // front fill: faces and dark clothes read clearly
 })();
 const dstage = new THREE.Group(); scene.add(dstage);
 {
@@ -585,9 +585,9 @@ function updateStages(time) {
   if (ring && ring.visible) ring.userData.flash.forEach((f, i) => { if (f.material.opacity > 0.01) f.material.opacity *= 0.8; else if (Math.random() < 0.012 * (game && game.shake > 0 ? 6 : 1)) { f.position.set(-14 + Math.random() * 28, 0.6 + Math.random() * 2.2, -6.4 - Math.random() * 3.5); f.material.opacity = 1; } });      // camera flashes in the crowd, more of them when something lands
 }
 if (!DARKSTAGE) {                                         // polish for the office arena: a glossy ring, spotlights from the rig, haze that pushes the crowd back
-  const gloss = new THREE.Mesh(new THREE.PlaneGeometry(10.6, 4.3), waterMat({ floor: '#0a0d1c', line: '#7fa8ff', wo: 0.34 })); gloss.rotation.x = -Math.PI / 2; gloss.position.y = 0.006; gloss.material.uniforms.uG.value = 0.55; gloss.renderOrder = 0; arena.add(gloss); arena.userData.gloss = gloss;
+  const gloss = new THREE.Mesh(new THREE.PlaneGeometry(10.6, 4.3), waterMat({ floor: '#0a0d1c', line: '#7fa8ff', wo: 0.34 })); gloss.rotation.x = -Math.PI / 2; gloss.position.y = 0.006; gloss.material.uniforms.uG.value = 0.3; gloss.renderOrder = 0; arena.add(gloss); arena.userData.gloss = gloss;
   [[-2.6, '#bcd6ff'], [0, '#fff3dc'], [2.6, '#ffc6cc']].forEach(([x, col]) => { const cone = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 1.7, 8.5, 28, 1, true), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.055, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false })); cone.position.set(x, 4.25, 0); arena.add(cone); const pool = new THREE.Mesh(new THREE.CircleGeometry(1.7, 40), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.07, blending: THREE.AdditiveBlending, depthWrite: false })); pool.rotation.x = -Math.PI / 2; pool.position.set(x, 0.012, 0); arena.add(pool); });
-  const hz = canvasTex(8, 256, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(6,8,24,0.95)'); gr.addColorStop(0.45, 'rgba(6,8,24,0.68)'); gr.addColorStop(1, 'rgba(6,8,24,0.3)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+  const hz = canvasTex(8, 256, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(4,5,16,0.97)'); gr.addColorStop(0.45, 'rgba(4,5,16,0.8)'); gr.addColorStop(1, 'rgba(4,5,16,0.45)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
   const haze = new THREE.Mesh(new THREE.PlaneGeometry(44, 9), new THREE.MeshBasicMaterial({ map: hz, transparent: true, depthWrite: false })); haze.position.set(0, 4.3, -5.2); haze.renderOrder = 1; arena.add(haze);
 }
 function glowTexLazy() { return canvasTex(32, 32, g => { const r = g.createRadialGradient(16, 16, 0, 16, 16, 16); r.addColorStop(0, '#ffffff'); r.addColorStop(0.4, 'rgba(255,255,255,.6)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 32, 32); }); }
@@ -691,11 +691,11 @@ function makeRealHead(key) {
 // fighting gloves in the fighter's colour: replace the photo-built hands (thin fingers do not survive a one-photo build)
 function makeGlove(color) {
   const g = new THREE.Group();
-  const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.05 });
-  const fist = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 18), mat); fist.scale.set(0.09, 0.082, 0.1);
+  const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(color).multiplyScalar(0.62), roughness: 0.72, metalness: 0 });
+  const fist = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 18), mat); fist.scale.set(0.074, 0.064, 0.08);
   const thumb = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), mat); thumb.scale.set(0.03, 0.028, 0.045); thumb.position.set(0, 0.045, 0.03);
-  const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.06, 0.06, 20), new THREE.MeshStandardMaterial({ color: '#f4f1e8', roughness: 0.6 }));
-  cuff.position.set(0, 0, 0); cuff.rotation.z = Math.PI / 2;
+  const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.06, 0.06, 20), new THREE.MeshStandardMaterial({ color: '#17181f', roughness: 0.8 }));
+  cuff.position.set(0, 0, 0); cuff.rotation.z = Math.PI / 2; cuff.scale.set(0.86, 1.3, 0.86);
   [fist, thumb, cuff].forEach(m => { m.castShadow = true; g.add(m); });
   fist.position.x = 0.07; thumb.position.x = 0.06; cuff.position.x = -0.005;
   return g;
@@ -1847,8 +1847,8 @@ function step() {
 }
 function addRim(m) {                                    // light catching the edge of the body
   if (!m || m.userData.rim || !m.isMeshStandardMaterial) return; m.userData.rim = 1;
-  m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  { float rimK = pow(1.0 - clamp(dot(normalize(vViewPosition), normal), 0.0, 1.0), 3.6); totalEmissiveRadiance += vec3(0.42, 0.62, 1.0) * rimK * ' + (PHONE ? '0.34' : '0.2') + '; }'); };
-  m.customProgramCacheKey = () => 'rim2'; m.needsUpdate = true;
+  m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  { float rimK = pow(1.0 - clamp(dot(normalize(vViewPosition), normal), 0.0, 1.0), 3.6); totalEmissiveRadiance += vec3(0.42, 0.62, 1.0) * rimK * ' + (PHONE ? '0.26' : '0.13') + '; }'); };
+  m.customProgramCacheKey = () => 'rim3'; m.needsUpdate = true;
 }
 function syncFighter(f) {
   if (!f.rimDone && f.mats) { f.rimDone = 1; f.mats.forEach(addRim); }
@@ -1871,7 +1871,7 @@ function syncFighter(f) {
   applyPose(f);
   // red flash on the photo head when hit
   if (f.head) { const face = f.head.children[1].material; face.color.set(f.flash > 0 ? '#ff7070' : '#ffffff'); faceCamera(f); }
-  if (f.full) f.mats.forEach(m => { m.emissive.set('#ffffff'); m.emissiveIntensity = f.flash > 0.06 ? 0.85 : (f.emI || 0.2); });
+  if (f.full) f.mats.forEach(m => { m.emissive.set('#ffffff'); m.emissiveIntensity = f.flash > 0.06 ? 0.85 : (f.emI || 0.12); });
   if (f.tmats) f.tmats.forEach(m => m.emissive.set(f.flash > 0 ? '#5a1414' : '#000000'));
   else if (f.real) f.mats.forEach(m => { m.emissive.set(f.flash > 0.06 ? '#ffffff' : '#000000'); m.emissiveIntensity = f.flash > 0.06 ? 0.55 : 0; });
   updateFace(f); fighterFX(f);
