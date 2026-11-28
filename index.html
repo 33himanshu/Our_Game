@@ -108,6 +108,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 #tS.on{opacity:1;background:#ffcc00;color:#111;box-shadow:0 0 16px #ffcc00;animation:blink .35s infinite alternate}
 #tU{right:10px;bottom:184px;width:66px;height:36px;border-radius:18px;opacity:.4}#tU.on{opacity:1;background:#fff;color:#111;box-shadow:0 0 16px #fff;animation:blink .35s infinite alternate}#tU.used{display:none}
 #tD.on{opacity:1;background:#ff3fc4;box-shadow:0 0 16px #ff3fc4;animation:blink .35s infinite alternate}#tD.used{display:none}
+#acts #tP{right:84px;bottom:0;width:76px;height:76px}#acts #tK{right:0;bottom:56px;width:76px;height:76px}#acts #tG{right:170px;bottom:6px;width:54px;height:54px}#acts #tS{right:94px;bottom:90px;width:56px;height:56px}#acts #tD{right:8px;bottom:144px;width:56px;height:56px;border-radius:50%;font-size:12px}#acts #tU{right:72px;bottom:156px;width:56px;height:56px;border-radius:50%}
 #rot{display:none;position:fixed;inset:0;z-index:50;background:#0b0d1c;color:#fff;align-items:center;justify-content:center;flex-direction:column;font:400 26px Oswald,Teko,Impact,sans-serif;letter-spacing:1px;text-align:center;padding:24px}#rot div{font-size:80px;color:var(--gold)}
 @media (pointer:coarse){#touch{display:block}#ticker{display:none}.overlay{inset:0}body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none}.ready{display:none}}
 @media (pointer:coarse) and (orientation:portrait){#rot{display:flex}}
@@ -250,7 +251,7 @@ button{font-family:Oswald,Teko,Impact,sans-serif;letter-spacing:.08em}
     <div class="row"><span class="lbl">CPU</span><button data-d="easy">EASY</button><button data-d="normal" class="on">NORMAL</button><button data-d="hard">HARD</button></div>
     <div class="row" id="betRow"><span class="lbl">BET</span><button data-b="0" class="on">NONE</button><button data-b="50">50</button><button data-b="100">100</button><button data-b="250">250</button><button data-b="all">ALL IN</button><button id="watchBtn">🎲 WATCH &amp; BET</button></div>
     <div class="row" style="margin-top:2px"><span class="lbl" id="betBal" style="letter-spacing:.1em"></span></div>
-    <div class="row"><button id="hubBtn" style="background:#1d7a52;border-color:#6fe3a0">🏢 WALK THE OFFICE</button><button id="fsBtn">⛶ FULL SCREEN</button><button id="muteBtn">🔊 SOUND ON</button><button id="friendBtn" style="background:#2456c9;border-color:#6f9bff">🌐 PLAY WITH A FRIEND</button></div>
+    <div class="row"><button id="hubBtn" style="background:#1d7a52;border-color:#6fe3a0">🏢 WALK THE OFFICE</button><button id="fsBtn">⛶ FULL SCREEN</button><button id="qBtn">QUALITY: AUTO</button><button id="muteBtn">🔊 SOUND ON</button><button id="friendBtn" style="background:#2456c9;border-color:#6f9bff">🌐 PLAY WITH A FRIEND</button></div>
     <div class="row"><button id="fightBtn" class="big">FIGHT!</button></div>
     <div class="help" id="netStatus" style="color:#ffcc00"></div>
     <div class="help">←/→ your fighter · ↑/↓ the computer's · 1/2/3 difficulty · Enter fight<br>In the fight: A/D move · W jump · S crouch · hold BACK block · tap BACK just before a hit to PARRY · F full screen · J punch · K kick · I or J+K grab · L/Space super · O domain · U ultimate (once a match) · Esc pause</div>
@@ -409,10 +410,17 @@ function speak(c, line) { }                       // spoken lines are off (the t
 
 // ================================================================== renderer / scene
 const canvas = $('c');
-const PHONE = matchMedia('(pointer:coarse)').matches && !/[?&]full/.test(location.search); let pxr = Math.min(PHONE ? 1.5 : 2, devicePixelRatio);
+const COARSE_DEV = matchMedia('(pointer:coarse)').matches;
+// 28 Nov: adaptive quality. Every device starts high (level 0) and steps down one level at a time while playing, only if it cannot hold about 55 frames a second:
+// 1 effects halved, 2 sharpness 1.75, 3 sharpness 1.5, 4 glow off (colour grade kept), 5 real shadows off (a soft patch under the feet), 6 sharpness 1.0.
+// The level reached is remembered per device; the menu offers QUALITY: AUTO / HIGH / LOW. Things built once at load (crowd size, extra lights, a cheaper floor) are only cut on a device that ended at level 5 or lower before.
+const QPREF = (() => { try { return JSON.parse(localStorage.getItem('qcs_quality') || '{}') || {}; } catch (e) { return {}; } })();
+const QMODE = (location.search.match(/[?&]q=(auto|high|low)/) || [])[1] || QPREF.mode || 'auto';
+let QL = QMODE === 'high' ? 0 : QMODE === 'low' ? 6 : QPREF.level === undefined ? (COARSE_DEV ? 5 : 0) : Math.max(0, Math.min(6, QPREF.level | 0)), FXHALF = QL >= 1;      // a phone with nothing remembered starts light (level 5) and climbs while it has room; a computer starts at the top
+const PHONE = (QL >= 5 || /[?&]lite/.test(location.search)) && !/[?&]full/.test(location.search); let pxr = Math.min(QL >= 6 ? 1.0 : QL >= 3 ? 1.5 : QL >= 2 ? 1.75 : 2, devicePixelRatio);
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); renderer.localClippingEnabled = true;
 renderer.setPixelRatio(pxr);
-renderer.shadowMap.enabled = !PHONE; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled = QL < 5; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.95;      // 28 Nov: lower, so white clothes read as cloth
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 const scene = new THREE.Scene();
@@ -424,7 +432,7 @@ camera.position.set(0, 2.1, 9);
 // finishing pass: soft shading where things meet (computer only), glow on the brightest things, then a light colour grade and vignette.
 // ?pp=0 turns the whole pass off; the soft shading is off unless ?ao=1 (it cost about 20 ms a frame on a busy Mac, for a small difference). The scene is drawn into the first buffer exactly as it was drawn to the screen before
 // (tone mapped and colour-encoded in each shader, so see-through effects blend the same way); the passes after it only add on top. No OutputPass, or colours would be processed twice.
-const PP = !/[?&]pp=0/.test(location.search) && (!PHONE || /[?&]pp=1/.test(location.search)); let composer = null, bloomPass = null, aoPass = null;
+const PP = !/[?&]pp=0/.test(location.search); let composer = null, bloomPass = null, aoPass = null;
 const GRADE = {
   uniforms: { tDiffuse: { value: null }, vig: { value: 0.22 }, sat: { value: 1.07 }, con: { value: 1.05 } },
   vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -447,12 +455,12 @@ if (PP) {
       composer.addPass(aoPass);
     }
     bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.35, 0.5, 0.9);      // only real lights and effects are bright enough to glow, not clothes
-    if (PHONE) bloomPass.setSize = function (w, h) { UnrealBloomPass.prototype.setSize.call(this, Math.round(w / 2), Math.round(h / 2)); };
-    composer.addPass(bloomPass);
+    if (COARSE_DEV || PHONE) bloomPass.setSize = function (w, h) { UnrealBloomPass.prototype.setSize.call(this, Math.round(w / 2), Math.round(h / 2)); };
+    composer.addPass(bloomPass); bloomPass.enabled = QL < 4;
     composer.addPass(new ShaderPass(GRADE));
   } catch (e) { composer = null; console.warn('finishing pass off', e); }
 }
-window.__ppComposer = composer;
+window.__ppComposer = composer; setTimeout(() => applyQL(false), 0);
 window.__pp = { get on() { return !!composer; }, get ao() { return !!aoPass; }, get bloom() { return !!bloomPass; } };
 // glow: a small, blurred copy of the finished picture with only its brightest parts kept, laid back over it. The picture itself is untouched.
 const GLOW = !composer && !matchMedia('(pointer:coarse)').matches && !/[?&]noglow/.test(location.search), glowC = document.getElementById('glow'), glowX = GLOW && glowC ? glowC.getContext('2d') : null;
@@ -478,7 +486,7 @@ function textCanvas(text, { size = 72, fg = '#111', bg = '#ffcc00', stroke = '#1
 function textSprite(text, opts, height = 0.45) {
   const c = textCanvas(text, opts), t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false }));
-  s.scale.set(height * c.width / c.height, height, 1); s.renderOrder = 20; return s;
+  s.scale.set(height * c.width / c.height, height, 1); s.renderOrder = 20; s.userData.word = true; return s;
 }
 
 // ---------------------------------------------------------------- the arena: Stage-1 main at 3 AM
@@ -563,7 +571,7 @@ const monitorTex = [];
   // lights
   const hemi = new THREE.HemisphereLight(HEMI_COL, '#1a1226', 0.5); scene.add(hemi); window.__hemi = hemi; if (matchMedia('(pointer:coarse)').matches) hemi.intensity = 0.62;
   const key = new THREE.DirectionalLight('#fff0dc', 2.7); key.position.set(3, 8, 6); key.castShadow = true; window.__key = key;
-  key.shadow.mapSize.set(PHONE ? 1024 : 2048, PHONE ? 1024 : 2048); Object.assign(key.shadow.camera, { left: -7, right: 7, top: 6, bottom: -2, near: 1, far: 25 }); key.shadow.bias = -0.0004;
+  key.shadow.mapSize.set(COARSE_DEV ? 1024 : 2048, COARSE_DEV ? 1024 : 2048); Object.assign(key.shadow.camera, { left: -7, right: 7, top: 6, bottom: -2, near: 1, far: 25 }); key.shadow.bias = -0.0004;
   scene.add(key);
   if (!PHONE) {
   const rimL = new THREE.SpotLight('#39c6ff', 70, 14, 0.42, 0.7); rimL.position.set(-6, 5, -4.5); rimL.target.position.set(0, 1, 0); scene.add(rimL, rimL.target);
@@ -1889,9 +1897,9 @@ function toScreen(v) { _p.copy(v).project(camera); return [(_p.x + 1) / 2 * inne
 function trash(o) { scene.remove(o); const g = o.geometry; if (g && !g.userData.keep && (o.isPoints || (o.isMesh && g.type !== 'BufferGeometry'))) g.dispose(); if (o.material && o.userData.own) o.material.dispose(); }
 const _geo = {};
 function sharedGeo(key, make) { if (!_geo[key]) { _geo[key] = make(); _geo[key].userData.keep = true; } return _geo[key]; }
-let _hudB = 0;
+let _hudB = 0; const _wordTop = new THREE.Vector3();
 function stepFX(vis) {
-  _hudB = game && game.fx.some(e => e.type === 'text') && !$('hud').classList.contains('hidden') ? $('hud').getBoundingClientRect().bottom : 0;      // read once per frame, before any text is moved (reading after each move would make the page re-lay itself out every time)
+  _hudB = game && game.fx.some(e => e.type === 'text' || (e.type === 'p' && e.obj.userData && e.obj.userData.word)) && !$('hud').classList.contains('hidden') ? $('hud').getBoundingClientRect().bottom : 0;      // read once per frame, before any text is moved (reading after each move would make the page re-lay itself out every time)
   flipStep();
   const cur = game.fx; game.fx = [];                 // effects born while stepping (a hit by a projectile) land in the new list, not lost
   const kept = cur.filter(e => {
@@ -1913,6 +1921,7 @@ function stepFX(vis) {
     }
     if (e.type === 'p') {
       e.obj.position.addScaledVector(e.v, DT); e.v.y -= e.g * DT;
+      if (_hudB && e.obj.userData.word) { const sy = toScreen(_wordTop.copy(e.obj.position).setY(e.obj.position.y + e.obj.scale.y * 0.5))[1]; if (sy < _hudB + 8) { e.obj.position.y -= 0.06; e.v.y = Math.min(e.v.y, 0); } }      // a big floating word never rides up under the clock and health bars
       if (e.grow) e.obj.scale.multiplyScalar(Math.max(0.01, 1 + e.grow * DT));
       if (e.face) e.obj.quaternion.copy(camera.quaternion);
       if (e.spin) { if (e.obj.isSprite) e.obj.material.rotation += e.spin * DT; else { e.obj.rotation.x += e.spin * DT; e.obj.rotation.z += e.spin * 0.7 * DT; } }
@@ -2034,7 +2043,7 @@ function addRim(m) {                                    // light catching the ed
 }
 function syncFighter(f) {
   if (!f.rimDone && f.mats) { f.rimDone = 1; f.mats.forEach(addRim); }
-  if (PHONE) { if (!f.blob) { f.blob = new THREE.Mesh(sharedGeo('blob', () => new THREE.CircleGeometry(0.5, 20)), new THREE.MeshBasicMaterial({ map: glowTex('#000000'), color: '#000000', transparent: true, opacity: 0.55, depthWrite: false })); f.blob.rotation.x = -Math.PI / 2; f.blob.renderOrder = 4; scene.add(f.blob); } f.blob.position.set(f.x, 0.03, f.z || 0); f.blob.scale.setScalar(Math.max(0.5, 1 - f.y * 0.35)); f.blob.visible = f.root.visible; }   // a soft dark patch under the feet stands in for the real shadow
+  if (!renderer.shadowMap.enabled) { if (!f.blob) { f.blob = new THREE.Mesh(sharedGeo('blob', () => new THREE.CircleGeometry(0.5, 20)), new THREE.MeshBasicMaterial({ map: glowTex('#000000'), color: '#000000', transparent: true, opacity: 0.55, depthWrite: false })); f.blob.rotation.x = -Math.PI / 2; f.blob.renderOrder = 4; scene.add(f.blob); } f.blob.position.set(f.x, 0.03, f.z || 0); f.blob.scale.setScalar(Math.max(0.5, 1 - f.y * 0.35)); f.blob.visible = f.root.visible; }   // a soft dark patch under the feet stands in for the real shadow
   f.root.position.set(f.x + ((game && game.hitstop > 0 && (f.state === 'hit' || (f.state === 'down' && f.t < 0.06))) ? Math.sin(performance.now() / 11) * (game.hitstop > 0.1 ? 0.055 : 0.03) : 0), f.y, f.z || 0);
   const turn = (f.state === 'atk' && f.move && !f.move.grab) ? 0.3 : (MX && f.facing > 0 && f.real) ? 0.3 : f.real ? 0.92 : 0.42;   // real bodies stand three-quarters to the camera, like the reference games
   const targetRot = f.yaw !== undefined ? f.yaw : f.facing > 0 ? Math.PI / 2 - turn : -Math.PI / 2 + turn;
@@ -2095,7 +2104,9 @@ if (FLIPON) Object.keys(FLIPS).forEach(n => new THREE.TextureLoader().load('fx/f
   F.tex = t; try { renderer.initTexture(t); } catch (e) { }
 }, undefined, () => { }));
 function flipSet(e) { const k = clamp(e.age / e.dur, 0, 0.999), i = Math.floor(e.from + (e.to - e.from + 1) * k), F = e.F; e.t.offset.set((i % F.c) / F.c, 1 - (Math.floor(i / F.c) + 1) / F.r); }
+let _flipK = 0;
 function flip(name, x, y, z, size, o = {}) {
+  if (FXHALF && !o.keep && (++_flipK & 1)) return null;      // effects halved: every other flipbook is skipped
   const F = FLIPS[name]; if (!FLIPON || !F || !F.pool || !game) return null; const e = F.pool.find(q => !q.on); if (!e) return null;
   const m = e.s.material; m.color.set(o.col || '#ffffff'); m.blending = o.add ? THREE.AdditiveBlending : THREE.NormalBlending; m.opacity = o.op === undefined ? 1 : o.op; m.rotation = o.rot || 0;
   e.s.position.set(x, y, z); e.s.scale.set(size * (F.ax || 1), size, 1); e.s.renderOrder = o.add ? 17 : 6; e.s.visible = true;
@@ -2110,7 +2121,7 @@ function fxSprite(name, col, size, o = {}) {              // one sprite of effec
 function dustPuff(x, y, z, vx, vy, size, life) { const d = fxSprite(Math.random() < 0.5 ? 'smoke' : 'smoke2', '#b7ad9c', size * 2.6, { normal: true, op: 0.42, rot: Math.random() * 6.28 }) || glowSprite('#d9cfbd', size); return PFX(d, new THREE.Vector3(x, y, z), new THREE.Vector3(vx, vy, 0), life, { grow: 1.9 }); }
 function glowSprite(color, size) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(color), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false })); s.scale.setScalar(size); s.renderOrder = 16; return s; }
 let _pfxK = 0;
-function PFX(obj, pos, vel, life, o = {}) { if (!game) return obj; if (obj.isSprite) { const n = game.fx.length; if (n > (PHONE ? 110 : 420) || (PHONE && n > 45 && (++_pfxK & 1))) { if (obj.material) obj.material.dispose(); return obj; } } obj.position.copy(pos); scene.add(obj); game.fx.push({ type: 'p', obj, v: vel, g: o.g || 0, life, max: life, grow: o.grow || 0, face: !!o.face, spin: o.spin || 0, fade: o.fade !== false, op: obj.material && obj.material.opacity !== undefined ? obj.material.opacity : 1 }); return obj; }
+function PFX(obj, pos, vel, life, o = {}) { if (!game) return obj; if (obj.isSprite) { const n = game.fx.length; if (n > (PHONE ? 110 : FXHALF ? 210 : 420) || ((PHONE || FXHALF) && n > 45 && (++_pfxK & 1))) { if (obj.material) obj.material.dispose(); return obj; } } obj.position.copy(pos); scene.add(obj); game.fx.push({ type: 'p', obj, v: vel, g: o.g || 0, life, max: life, grow: o.grow || 0, face: !!o.face, spin: o.spin || 0, fade: o.fade !== false, op: obj.material && obj.material.opacity !== undefined ? obj.material.opacity : 1 }); return obj; }
 const _wp = new THREE.Vector3(), TRN = 12;
 function trailPush(f, p, w) {
   if (!f.trail) {
@@ -2916,8 +2927,9 @@ function fsToggle() {
 }
 ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => { fsLabel(); resize(); }));
 { const tr = $('emoTray'); EMOTES.forEach((e, k) => { const b = document.createElement('button'); b.textContent = e; b.addEventListener('pointerdown', ev => { ev.preventDefault(); ev.stopPropagation(); myEmote(k); }); tr.appendChild(b); });
-  const h = document.createElement('div'); h.className = 'hint'; h.textContent = PHONE ? 'tap to react' : 'or press 1 to 8'; tr.appendChild(h);
+  const h = document.createElement('div'); h.className = 'hint'; h.textContent = COARSE_DEV ? 'tap to react' : 'or press 1 to 8'; tr.appendChild(h);
   $('emoBtn').addEventListener('click', () => tr.classList.toggle('hidden')); }
+$('qBtn').textContent = 'QUALITY: ' + QMODE.toUpperCase(); $('qBtn').addEventListener('click', () => { const nx = { auto: 'high', high: 'low', low: 'auto' }[QMODE] || 'auto'; try { localStorage.setItem('qcs_quality', JSON.stringify({ mode: nx, level: nx === 'auto' ? 0 : nx === 'low' ? 6 : 0 })); } catch (e) { } location.reload(); });      // AUTO adapts to the device; HIGH keeps everything on; LOW is the light version
 $('fsBtn').addEventListener('click', fsToggle); $('fsTop').addEventListener('click', fsToggle); fsLabel();
 addEventListener('keydown', e => { if (e.code === 'KeyF' && !e.repeat && !['INPUT', 'TEXTAREA'].includes((document.activeElement || {}).tagName)) fsToggle(); });
 let bet = 0, watch = false;                              // play money only: nothing here is real
@@ -3195,20 +3207,45 @@ $('timer').addEventListener('pointerdown', () => { const now = performance.now()
 if (FPSM.on) $('fpsBox').style.display = 'block';
 function fpsMeter(ms) { if (!FPSM.on) return; FPSM.n++; FPSM.sum += ms; FPSM.worst = Math.max(FPSM.worst, ms); if ((FPSM.t += ms) < 500) return; const r = renderer.info.render;
   $('fpsBox').textContent = Math.round(1000 * FPSM.n / FPSM.sum) + ' frames/s   slowest ' + Math.round(FPSM.worst) + ' ms\n' + r.calls + ' draws   ' + Math.round(r.triangles / 1000) + 'k triangles\n' + 'size x' + renderer.getPixelRatio().toFixed(2) + '  ' + renderer.domElement.width + 'x' + renderer.domElement.height + '\n' + (game ? game.fx.length : 0) + ' effects   ' + (PHONE ? 'phone mode' : 'full mode'); FPSM.n = 0; FPSM.sum = 0; FPSM.worst = 0; FPSM.t = 0; }
-const AQ = { n: 0, sum: 0, prev: 0, tried: 0, done: !PHONE, wait: 60 };
+const AQ = { f: [], w: [], bad: 0, good: 0, work: 0, wait: 20, up: QMODE === 'auto' && COARSE_DEV && QPREF.level === undefined, downed: false, log: [] }; window.__aq = AQ;      // up: a first-visit phone may climb; downed: it stepped down once, so it stays put for the rest of the session
 const AOQ = { n: 0, sum: 0, wait: 90 };
 function aoWatch(ms) {                                  // a computer that cannot hold the frame rate with the soft shading on loses the soft shading, for good
   if (!aoPass || AOQ.off || !game || game.paused || document.hidden || game.dom || game.ult) return; if (AOQ.wait > 0) { AOQ.wait--; return; }
   AOQ.sum += ms; if (++AOQ.n < 60) return; const avg = AOQ.sum / AOQ.n; AOQ.n = 0; AOQ.sum = 0;
   if (avg > 21) { AOQ.off = true; composer.removePass(aoPass); aoPass = null; console.log('soft shading off: frames took ' + avg.toFixed(1) + ' ms'); }
 }
-function adaptQuality(ms) {
-  if (AQ.done || !game || game.paused || document.hidden) return; if (AQ.wait > 0) { AQ.wait--; return; }
-  AQ.sum += ms; if (++AQ.n < 45) return; const avg = AQ.sum / AQ.n; AQ.n = 0; AQ.sum = 0;
-  if (AQ.tried && avg > AQ.prev * 0.985) { pxr = AQ.tried; renderer.setPixelRatio(pxr); resize(); AQ.done = true; return; }      // drawing fewer pixels did not help (the phone is capping the rate itself): undo and leave it
-  AQ.tried = 0; if (avg > 19.5 && pxr > 1.01) { AQ.prev = avg; AQ.tried = pxr; pxr = Math.max(1.0, pxr - 0.25); renderer.setPixelRatio(pxr); resize(); AQ.wait = 30; } else if (avg <= 21) AQ.done = AQ.done || false;
+function applyQL(save) {                                    // put the current quality level into effect
+  FXHALF = QL >= 1;
+  const want = Math.min(QL >= 6 ? 1.0 : QL >= 3 ? 1.5 : QL >= 2 ? 1.75 : 2, devicePixelRatio);
+  if (Math.abs(want - pxr) > 0.01) { pxr = want; renderer.setPixelRatio(pxr); resize(); }
+  if (bloomPass) bloomPass.enabled = QL < 4;
+  const sh = QL < 5; if (renderer.shadowMap.enabled !== sh) { renderer.shadowMap.enabled = sh; scene.traverse(o => { if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { m.needsUpdate = true; }); }); }
+  if (save && QMODE === 'auto') { try { localStorage.setItem('qcs_quality', JSON.stringify({ mode: 'auto', level: QL })); } catch (e) { } }
+  window.__quality = { mode: QMODE, level: QL, pxr, bloom: !!(bloomPass && bloomPass.enabled), shadows: renderer.shadowMap.enabled, fxHalf: FXHALF, grade: !!composer && QL < 5 };
+}
+const AQ_WORK = 2.2;      // most work per calm frame (ms) that still counts as room to climb: a 4x slowed phone does 2.8 to 3.3 ms at level 5 and only holds up there; a fast one does 1.1 to 1.7 ms
+const AQ_TOP = 2;      // a phone climbs no higher than level 2: at 0 and 1 an ultimate fell to 41 to 47 frames a second on a phone-sized screen even with a fast processor (the graphics chip, which the calm-moment work time cannot see)
+function heavyWatch(ms) {                                   // a super, domain or ultimate running clearly slow ends the climbing for this session (no step down)
+  if (!AQ.up || AQ.downed || QMODE !== 'auto' || document.hidden || !game || game.paused) return;
+  AQ.h = AQ.h || []; AQ.h.push(ms); if (AQ.h.length < 30) return; const typ = AQ.h.slice().sort((x, y) => x - y)[Math.floor(AQ.h.length * 0.7)]; AQ.h.length = 0;
+  if (AQ.log.length < 400) AQ.log.push([QL, 0, +typ.toFixed(1), 'heavy']);
+  if (typ > 20) { AQ.downed = true; console.log('quality level ' + QL + ' kept: a heavy moment ran at ' + typ.toFixed(1) + ' ms a frame'); }
+}
+function adaptQuality(ms) {                                 // AUTO: judge the typical frame (70th percentile, so one-off stalls do not count) every 30 frames of a fight; far too slow: two levels down at once; a bit too slow twice in a row: one level down
+  const busy = game && (game.dom || game.ult || game.clash || game.p1.state === 'super' || game.p2.state === 'super'), menuOn = !game && !hub && !$('menu').classList.contains('hidden');
+  if (AQ.pend && !AQ.downed && QMODE === 'auto' && (menuOn || (game && (game.phase === 'intro' || game.phase === 'ko')))) { AQ.pend = false; QL--; applyQL(true); AQ.wait = 40; console.log('quality level ' + QL + ' (up)'); }      // a step up rebuilds materials (a short freeze), so it waits for the menu, a round intro or a knockout, never mid-fight
+  if (QMODE !== 'auto' || QL >= 6 || document.hidden || busy || !(menuOn || (game && !game.paused && ['fight', 'intro'].includes(game.phase)))) { if (busy) { AQ.f.length = 0; AQ.w.length = 0; AQ.good = 0; heavyWatch(ms); } return; } if (AQ.wait > 0) { AQ.wait--; return; }      // measured on the menu, in the round intro and in ordinary fighting (not during the short heavy bursts of supers, domains and ultimates), so a slow device has stepped down before the fighting starts
+  AQ.f.push(ms); AQ.w.push(AQ.work); if (AQ.f.length < 30) return; const p70 = a => a.slice().sort((x, y) => x - y)[Math.floor(a.length * 0.7)], typ = p70(AQ.f), wk = p70(AQ.w); AQ.f.length = 0; AQ.w.length = 0; if (AQ.log.length < 400) AQ.log.push([QL, +wk.toFixed(1), +typ.toFixed(1), menuOn ? 'menu' : game.phase]);      // typ: time between frames (capped by the 60 Hz screen); wk: the work this page does inside a frame
+  AQ.bad = typ > 18.2 ? AQ.bad + 1 : 0; AQ.vbad = typ > 26 ? (AQ.vbad || 0) + 1 : 0;
+  const by = AQ.vbad >= 2 ? 2 : AQ.bad >= 2 ? 1 : 0;      // every step needs two slow measurements in a row, so one heavy moment cannot drop the quality
+  if (by) { AQ.bad = 0; AQ.vbad = 0; QL = Math.min(6, QL + by); applyQL(true); AQ.wait = 40; AQ.downed = true; AQ.good = 0; console.log('quality level ' + QL + ': typical frame ' + typ.toFixed(1) + ' ms'); }
+  else if (AQ.up && !AQ.downed && !AQ.pend && QL > AQ_TOP) {
+    AQ.good = wk <= AQ_WORK && typ <= 18.2 ? AQ.good + 1 : 0;      // clear room: little work per frame and the screen keeping up, twice in a row
+    if (AQ.good >= 2) { AQ.good = 0; AQ.pend = true; if (AQ.log.length < 400) AQ.log.push([QL, +wk.toFixed(1), +typ.toFixed(1), 'up next']); }
+  }
 }
 function frame(now) {
+  const t0 = performance.now();
   const el = Math.min(0.1, (now - last) / 1000); adaptQuality(now - last); aoWatch(now - last); fpsMeter(now - last); last = now; time += el;
   if (game && game.slowT > 0) { game.slowT -= el; acc += el * 0.3 * (window.__ts || 1); } else acc += el * (window.__ts || 1);
   if (game && game.cine && (game.cine.t -= el) <= 0) game.cine = null;
@@ -3226,8 +3263,9 @@ function frame(now) {
   if (game && window.__rims) [game.p1, game.p2].forEach((f, i) => { const r = window.__rims[i]; r.color.set(f.c.ui); r.position.set(f.x - f.facing * 1.6, 4.2, -3.6); if (r.target) { r.target.position.set(f.x, 1.2, 0); r.target.updateMatrixWorld(); } });      // a thin rim of each fighter's own colour, from behind him
   updateArena(time); updateStages(time); updateCamera(time); beatTick();
   if (aoPass) aoPass.enabled = !(game && (game.dom || game.ult));
-  if (composer) composer.render(); else renderer.render(scene, camera);
+  if (composer && QL < 5) composer.render(); else renderer.render(scene, camera);      // the light levels skip the finishing pass (colour grade): it cost 3 to 7 ms a frame on a phone-sized screen
   if (glowX) { try { glowX.drawImage(canvas, 0, 0, glowC.width, glowC.height); } catch (e) { } }
+  AQ.work = performance.now() - t0;
   requestAnimationFrame(frame);
 }
 
