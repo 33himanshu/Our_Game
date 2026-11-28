@@ -14,3 +14,9 @@
 - Office desks, screens, keyboards, plants and lamps: Kenney Furniture Pack (CC0), www.kenney.nl. Crowd figures are made from the stand-in body already credited above.
 
 - Fight animations (punches, kicks, hit reactions, win pose): converted from Mixamo (Adobe) clips for the X Bot skeleton. Only the converted game data is included; the source files are not redistributed.
+
+- Blast, dust and flame effects: "VFX image sequences and flipbooks" by Unity Labs (CC0), https://unity.com/blog/engine-platform/free-vfx-image-sequences-flipbooks. Recoloured and resized.
+
+## Big Vegas and Ortiz
+- Bodies: the Mixamo characters "Big Vegas" and "Ortiz" (Adobe Mixamo, free to use in games). Converted for the game (reduced, colour texture only, compressed); the original FBX files are not distributed.
+- Menu portraits: rendered from those models (Ortiz in the game, Big Vegas in Blender).
